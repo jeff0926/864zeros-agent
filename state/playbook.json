@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "created": "2026-01-24",
+    "last_updated": "2026-01-24",
+    "owner": "864zeros LLC"
+  },
+  "mission": {
+    "statement": "Build revenue-generating micro-SaaS products with 95% automation post-launch",
+    "constraints": {
+      "time_to_mvp_max_days": 7,
+      "automation_target_percent": 95,
+      "maintenance_hours_per_week_max": 2,
+      "primary_operator_has_day_job": true
+    }
+  },
+  "scoring_algorithm": {
+    "formula": "(validated_revenue * 0.3) + (build_speed * 0.25) + (automation_potential * 0.25) + (competition_gap * 0.2)",
+    "thresholds": {
+      "pursue": 75,
+      "consider": 60,
+      "reject": "below 60"
+    }
+  },
+  "tech_stack": {
+    "backend": ["Python", "FastAPI"],
+    "frontend": ["React", "Next.js"],
+    "development_tools": ["Claude Code", "Gemini CLI"],
+    "deployment": ["Google Play (Android)", "Vercel", "Railway"],
+    "databases": ["SQLite", "PostgreSQL", "Vector search"],
+    "automation": ["Playwright", "MCP servers"]
+  },
+  "operator_context": {
+    "environment": "Windows practitioner",
+    "available_machines": ["Windows PCs", "Chromebook with Linux VM"],
+    "ai_resources": {
+      "claude_api": true,
+      "claude_pro_subscription": true,
+      "gemini_pro_api": true,
+      "google_tools_full_access": true
+    },
+    "preferred_notification_channel": "TBD",
+    "response_time_expectation": "TBD"
+  },
+  "research_sources_ranked": [
+    {"name": "IndieHackers revenue posts", "value": 5, "reason": "Real money from real founders"},
+    {"name": "Reddit pain points", "value": 5, "reason": "Unfiltered demand signals"},
+    {"name": "Product Hunt launches", "value": 4, "reason": "Market reception and timing"},
+    {"name": "AppSumo deals", "value": 4, "reason": "Price validation and deal appetite"},
+    {"name": "Chrome/App stores", "value": 3, "reason": "Platform-specific data"},
+    {"name": "Google Trends", "value": 2, "reason": "Exploding Topics already dominates"}
+  ],
+  "authority_boundaries": {
+    "autonomous": ["Research", "Scoring", "File creation", "Recommendations", "Self-improvement"],
+    "requires_approval": ["Spending money", "Deploying live", "External communications", "Starting builds"],
+    "off_limits": "TBD - awaiting Jeff's input"
+  }
+}

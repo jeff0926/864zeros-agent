@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "last_updated": "2026-01-24",
+    "total_opportunities": 10,
+    "status": "awaiting_decision"
+  },
+  "opportunities": [
+    {
+      "id": "OPP-001",
+      "name": "Task Breakdown AI Mobile App (Goblin.tools clone)",
+      "score": 88,
+      "score_breakdown": {
+        "validated_revenue": 85,
+        "build_speed": 95,
+        "automation_potential": 90,
+        "competition_gap": 80
+      },
+      "evidence": {
+        "market_size": "$2.08B ADHD app market, 15.39% CAGR to $7.55B by 2033",
+        "revenue_validation": "Goblin.tools viral on ADHD TikTok, users willing to pay for polish",
+        "competition_gap": "Web-only, no mobile, no persistence - clear gap",
+        "build_estimate_days": 3
+      },
+      "platform_recommendation": "Android (Google Play access ready)",
+      "monetization": "$4.99/month or $29.99/year",
+      "status": "top_candidate",
+      "next_action": "Awaiting approval to begin build spec"
+    },
+    {
+      "id": "OPP-002",
+      "name": "Reddit Growth Automation Tool",
+      "score": 82,
+      "score_breakdown": {
+        "validated_revenue": 90,
+        "build_speed": 85,
+        "automation_potential": 75,
+        "competition_gap": 75
+      },
+      "evidence": {
+        "revenue_validation": "Howitzer hit $5K MRR before seed; MediaFast $2K MRR from Reddit",
+        "competition_gap": "GummySearch monitors, doesn't automate",
+        "build_estimate_days": 5
+      },
+      "platform_recommendation": "Web app",
+      "monetization": "$19.99/month",
+      "status": "strong_candidate",
+      "next_action": "Deep dive if OPP-001 rejected"
+    },
+    {
+      "id": "OPP-003",
+      "name": "AI Body Doubling Companion",
+      "score": 80,
+      "score_breakdown": {
+        "validated_revenue": 80,
+        "build_speed": 90,
+        "automation_potential": 95,
+        "competition_gap": 70
+      },
+      "evidence": {
+        "revenue_validation": "dubbii at $35/year, Flow Club 2,500+ sessions/week",
+        "competition_gap": "Current solutions require scheduling - need instant AI companion",
+        "build_estimate_days": 4
+      },
+      "platform_recommendation": "Web app or mobile",
+      "monetization": "$35/year",
+      "status": "candidate",
+      "next_action": "Hold in pipeline"
+    },
+    {
+      "id": "OPP-004",
+      "name": "Full-Page Screenshot + AI Annotation",
+      "score": 78,
+      "score_breakdown": {
+        "validated_revenue": 85,
+        "build_speed": 80,
+        "automation_potential": 90,
+        "competition_gap": 60
+      },
+      "evidence": {
+        "revenue_validation": "Go Full Page: 4M users, $10K/month at $1/month pricing",
+        "competition_gap": "Dominant player hasn't innovated since 2021",
+        "build_estimate_days": 5
+      },
+      "platform_recommendation": "Chrome extension",
+      "monetization": "$12/year",
+      "status": "candidate",
+      "next_action": "Hold in pipeline"
+    },
+    {
+      "id": "OPP-005",
+      "name": "ADHD Habit Tracker (No Streaks)",
+      "score": 77,
+      "score_breakdown": {
+        "validated_revenue": 75,
+        "build_speed": 90,
+        "automation_potential": 95,
+        "competition_gap": 70
+      },
+      "evidence": {
+        "revenue_validation": "dubbii model works, Finch has millions of downloads",
+        "competition_gap": "Every habit app uses streaks - ADHD users hate this",
+        "build_estimate_days": 4
+      },
+      "platform_recommendation": "Mobile (Android)",
+      "monetization": "$34.99/year",
+      "status": "candidate",
+      "next_action": "Hold in pipeline"
+    }
+  ],
+  "killed_ideas": [],
+  "decision_pending": {
+    "question": "Approve OPP-001 (Task Breakdown AI) for build spec phase?",
+    "context": "Highest score, fastest build, clearest gap, aligns with ADHD market research",
+    "awaiting_since": "2026-01-24"
+  }
+}
