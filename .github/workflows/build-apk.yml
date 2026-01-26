@@ -30,8 +30,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: task-breakdown-ai/package-lock.json
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -42,8 +40,10 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
+      - name: Clean and install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --legacy-peer-deps
 
       - name: Create .env file
         run: |
