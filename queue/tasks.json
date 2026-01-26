@@ -10,7 +10,15 @@
       "depends_on": "TASK-001",
       "opportunity_id": "OPP-001",
       "notes": "Setting up React Native project structure with navigation, theming, and API integration scaffolding"
+    },
+    {
+      "id": "TASK-TEST",
+      "title": "Send a test Telegram notification to verify the notification system works",
+      "description": "Test the Telegram notification integration by sending a test message to verify TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are configured correctly.",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-01-26T00:00:00Z"
     }
   ],
-  "updated_at": "2026-01-26T03:24:46.631024"
+  "updated_at": "2026-01-26T03:30:00.000000"
 }
