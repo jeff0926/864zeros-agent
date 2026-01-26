@@ -1,0 +1,15 @@
+[
+  {
+    "id": "OPP-001",
+    "title": "Task Breakdown AI Mobile App",
+    "description": "AI-powered mobile app that breaks down complex tasks into actionable steps",
+    "market_size": "large",
+    "competition_level": "medium",
+    "technical_complexity": "medium",
+    "time_to_mvp_days": 7,
+    "confidence_score": 82,
+    "status": "active",
+    "created_at": "2026-01-26T00:00:00Z",
+    "tags": ["mobile", "ai", "productivity"]
+  }
+]

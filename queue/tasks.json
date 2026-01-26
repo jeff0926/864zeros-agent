@@ -1,60 +1,16 @@
 {
-  "meta": {
-    "last_updated": "2026-01-24",
-    "queue_version": "1.0"
-  },
-  "pending_research": [
+  "tasks": [
     {
-      "id": "RESEARCH-001",
-      "topic": "Best AI tools and open source in the AI space we can leverage",
+      "id": "TASK-002",
+      "title": "Set up project structure for Task Breakdown AI",
+      "description": "Initialize the Android project structure with React Native or Flutter. Set up basic navigation, theming, and API integration scaffolding.",
       "priority": "high",
-      "reason": "Jeff explicitly requested this - need to find tools that extend my capabilities",
-      "areas_to_cover": [
-        "Open source LLM tools",
-        "MCP server repositories",
-        "AI agent frameworks worth knowing about",
-        "Research automation tools",
-        "Code generation tools",
-        "Web scraping AI tools",
-        "Free APIs and data sources"
-      ],
-      "status": "queued",
-      "created": "2026-01-24"
+      "status": "in_progress",
+      "created_at": "2026-01-26T00:00:00Z",
+      "depends_on": "TASK-001",
+      "opportunity_id": "OPP-001",
+      "notes": "Setting up React Native project structure with navigation, theming, and API integration scaffolding"
     }
   ],
-  "pending_decisions": [
-    {
-      "id": "DECISION-001",
-      "question": "Infrastructure: Windows-friendly orchestration approach",
-      "options": [
-        "Google Cloud Run + Cloud Scheduler (serverless, web UI management)",
-        "Simple Linux VPS with bulletproof setup script",
-        "Windows machine + cloud backup scheduler",
-        "GitHub Actions for scheduling + cloud storage for state"
-      ],
-      "status": "analyzing",
-      "blocker": "Need to finalize based on Jeff's comfort level"
-    },
-    {
-      "id": "DECISION-002",
-      "question": "Approve OPP-001 for build spec phase?",
-      "recommendation": "Yes - highest score, fastest build, clearest gap",
-      "status": "awaiting_jeff",
-      "created": "2026-01-24"
-    }
-  ],
-  "pending_questions_for_jeff": [
-    {
-      "id": "Q-001",
-      "question": "Preferred notification channel?",
-      "options": ["Telegram", "SMS", "Email", "Slack", "Other"],
-      "why_needed": "Required for autonomous operation - I need to alert you when action needed"
-    },
-    {
-      "id": "Q-002", 
-      "question": "What is explicitly off-limits for autonomous action?",
-      "why_needed": "Need to know boundaries before I start acting autonomously"
-    }
-  ],
-  "completed": []
+  "updated_at": "2026-01-26T03:24:46.631024"
 }
