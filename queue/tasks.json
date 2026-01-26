@@ -1,4 +1,15 @@
 {
-  "tasks": [],
-  "updated_at": "2026-01-26T05:18:39.556454"
+  "tasks": [
+    {
+      "id": "TASK-004",
+      "title": "Continue building Task Breakdown AI app",
+      "description": "Complete all screens, navigation, AI service integration, and subscription flow based on task-breakdown-ai-spec.md.",
+      "priority": 1,
+      "status": "pending",
+      "created_at": "2026-01-26T05:30:00Z",
+      "opportunity_id": "OPP-001",
+      "spec_file": "task-breakdown-ai-spec.md"
+    }
+  ],
+  "updated_at": "2026-01-26T05:30:00.000000"
 }
