@@ -373,6 +373,17 @@ def run_agent() -> None:
             # Add assistant message
             messages.append({"role": "assistant", "content": assistant_content})
 
+            # Track completed tasks for notifications (before break checks)
+            for block in response.content:
+                if block.type == "tool_use" and block.name == "update_task_status":
+                    if block.input.get("status") == "completed":
+                        tasks_processed += 1
+                        # Find the task that was completed
+                        for task in tasks:
+                            if task.get("id") == block.input.get("task_id"):
+                                telegram.notify_task_complete(task, block.input.get("notes", ""))
+                                break
+
             # If there were tool calls, add results and continue
             if tool_results:
                 messages.append({"role": "user", "content": tool_results})
@@ -385,17 +396,6 @@ def run_agent() -> None:
             if response.stop_reason == "end_turn" and not tool_results:
                 print("\nAgent signaled completion.")
                 break
-
-            # Track completed tasks for notifications
-            for block in response.content:
-                if block.type == "tool_use" and block.name == "update_task_status":
-                    if block.input.get("status") == "completed":
-                        tasks_processed += 1
-                        # Find the task that was completed
-                        for task in tasks:
-                            if task.get("id") == block.input.get("task_id"):
-                                telegram.notify_task_complete(task, block.input.get("notes", ""))
-                                break
 
         print("\nAgent run finished.")
         telegram.notify_agent_complete(tasks_processed)
