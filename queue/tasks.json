@@ -1,13 +1,4 @@
 {
-  "tasks": [
-    {
-      "id": "TASK-TEST-001",
-      "title": "Test Telegram notification system",
-      "description": "Simple test task to verify Telegram notifications are working. Just mark this task as completed to trigger the notification.",
-      "priority": "high",
-      "status": "pending",
-      "created_at": "2026-01-26T04:30:00Z"
-    }
-  ],
-  "updated_at": "2026-01-26T04:30:00.000000"
+  "tasks": [],
+  "updated_at": "2026-01-26T04:32:08.749889"
 }
