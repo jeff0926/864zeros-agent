@@ -45,6 +45,17 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps
 
+      - name: Patch libraries for AGP 8.0 namespace requirement
+        run: |
+          # Add namespace to react-native-vector-icons
+          VECTOR_ICONS_GRADLE="node_modules/react-native-vector-icons/android/build.gradle"
+          if [ -f "$VECTOR_ICONS_GRADLE" ]; then
+            if ! grep -q "namespace" "$VECTOR_ICONS_GRADLE"; then
+              sed -i "s/android {/android {\n    namespace 'com.oblador.vectoricons'/" "$VECTOR_ICONS_GRADLE"
+              echo "Patched react-native-vector-icons with namespace"
+            fi
+          fi
+
       - name: Create .env file
         run: |
           if [ -n "${{ github.event.inputs.anthropic_api_key }}" ]; then
