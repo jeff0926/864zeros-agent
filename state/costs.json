@@ -1,38 +1,11 @@
-{
-  "meta": {
+[
+  {
+    "opportunity_id": "OPP-001",
+    "category": "development",
+    "item": "React Native development setup",
+    "amount": 0,
     "currency": "USD",
-    "tracking_started": "2026-01-24",
-    "last_updated": "2026-01-24"
-  },
-  "monthly_budget": {
-    "target": 100,
-    "warning_threshold": 75
-  },
-  "expenses": [
-    {
-      "date": "2026-01-24",
-      "category": "infrastructure",
-      "item": "GitHub repo",
-      "cost": 0,
-      "notes": "Free private repo"
-    },
-    {
-      "date": "2026-01-24", 
-      "category": "ai_subscription",
-      "item": "Claude Pro",
-      "cost": 100,
-      "period": "monthly",
-      "notes": "Existing subscription"
-    }
-  ],
-  "totals": {
-    "2026-01": {
-      "infrastructure": 0,
-      "ai_apis": 0,
-      "ai_subscriptions": 100,
-      "domains": 0,
-      "other": 0,
-      "total": 100
-    }
+    "date": "2026-01-26",
+    "notes": "Using open source tools"
   }
-}
+]
