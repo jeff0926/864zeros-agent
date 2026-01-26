@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import anthropic
+import httpx
 
 # Configuration
 REPO_ROOT = Path(__file__).parent.parent
@@ -22,6 +23,84 @@ DIARY_FILE = REPO_ROOT / "diary" / "diary.md"
 STATE_DIR = REPO_ROOT / "state"
 MODEL = "claude-sonnet-4-20250514"
 MAX_TURNS = 25
+
+# Telegram configuration
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
+
+
+class TelegramNotifier:
+    """Send notifications via Telegram Bot API."""
+
+    def __init__(self, bot_token: str | None, chat_id: str | None):
+        self.bot_token = bot_token
+        self.chat_id = chat_id
+        self.enabled = bool(bot_token and chat_id)
+        if not self.enabled:
+            print("Telegram notifications disabled (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)")
+
+    def send(self, message: str, parse_mode: str = "Markdown") -> bool:
+        """Send a message to the configured chat."""
+        if not self.enabled:
+            return False
+        try:
+            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            response = httpx.post(
+                url,
+                json={
+                    "chat_id": self.chat_id,
+                    "text": message,
+                    "parse_mode": parse_mode,
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            return True
+        except Exception as e:
+            print(f"Telegram notification failed: {e}")
+            return False
+
+    def notify_task_start(self, task: dict) -> None:
+        """Notify when a task starts processing."""
+        msg = (
+            f"🚀 *Task Started*\n\n"
+            f"*ID:* `{task.get('id', 'unknown')}`\n"
+            f"*Title:* {task.get('title', 'Untitled')}\n"
+            f"*Priority:* {task.get('priority', 'normal')}"
+        )
+        self.send(msg)
+
+    def notify_task_complete(self, task: dict, notes: str = "") -> None:
+        """Notify when a task completes successfully."""
+        msg = (
+            f"✅ *Task Completed*\n\n"
+            f"*ID:* `{task.get('id', 'unknown')}`\n"
+            f"*Title:* {task.get('title', 'Untitled')}"
+        )
+        if notes:
+            msg += f"\n*Notes:* {notes}"
+        self.send(msg)
+
+    def notify_error(self, error: str, context: str = "") -> None:
+        """Notify when an error occurs."""
+        msg = f"❌ *Agent Error*\n\n*Error:* {error}"
+        if context:
+            msg += f"\n*Context:* {context}"
+        self.send(msg)
+
+    def notify_agent_start(self, task_count: int) -> None:
+        """Notify when agent run begins."""
+        msg = f"🤖 *864zeros Agent Started*\n\nProcessing {task_count} pending task(s)"
+        self.send(msg)
+
+    def notify_agent_complete(self, tasks_processed: int) -> None:
+        """Notify when agent run completes."""
+        msg = f"🏁 *Agent Run Complete*\n\nProcessed {tasks_processed} task(s)"
+        self.send(msg)
+
+
+# Global notifier instance
+telegram = TelegramNotifier(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
 
 
 def load_tasks() -> list[dict]:
@@ -236,14 +315,21 @@ Work autonomously. Ask questions only if truly blocked.
 def run_agent() -> None:
     """Run the autonomous agent loop."""
     client = anthropic.Anthropic()
+    tasks_processed = 0
 
-    tasks = load_tasks()
-    if not tasks:
-        print("No pending tasks in queue.")
-        append_diary("Agent run: No pending tasks found.")
-        return
+    try:
+        tasks = load_tasks()
+        if not tasks:
+            print("No pending tasks in queue.")
+            append_diary("Agent run: No pending tasks found.")
+            return
 
-    print(f"Found {len(tasks)} pending task(s). Starting agent loop...")
+        print(f"Found {len(tasks)} pending task(s). Starting agent loop...")
+        telegram.notify_agent_start(len(tasks))
+
+        # Notify about first task starting
+        if tasks:
+            telegram.notify_task_start(tasks[0])
 
     messages = [
         {
@@ -300,7 +386,26 @@ def run_agent() -> None:
             print("\nAgent signaled completion.")
             break
 
-    print("\nAgent run finished.")
+        # Track completed tasks for notifications
+        for block in response.content:
+            if block.type == "tool_use" and block.name == "update_task_status":
+                if block.input.get("status") == "completed":
+                    tasks_processed += 1
+                    # Find the task that was completed
+                    for task in tasks:
+                        if task.get("id") == block.input.get("task_id"):
+                            telegram.notify_task_complete(task, block.input.get("notes", ""))
+                            break
+
+        print("\nAgent run finished.")
+        telegram.notify_agent_complete(tasks_processed)
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Agent error: {error_msg}")
+        telegram.notify_error(error_msg, "Agent loop crashed")
+        append_diary(f"Agent run failed: {error_msg}")
+        raise
 
 
 if __name__ == "__main__":
