@@ -1,8 +1,37 @@
 {
   "meta": {
-    "last_updated": "2026-01-24",
+    "last_updated": "2026-01-26",
     "queue_version": "1.0"
   },
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Create build spec for Task Breakdown AI (OPP-001)",
+      "description": "Create detailed technical specification for the Task Breakdown AI mobile app. Include: architecture, API design, data models, UI wireframes description, and implementation timeline.",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-01-26T00:00:00Z",
+      "opportunity_id": "OPP-001"
+    },
+    {
+      "id": "TASK-002",
+      "title": "Set up project structure for Task Breakdown AI",
+      "description": "Initialize the Android project structure with React Native or Flutter. Set up basic navigation, theming, and API integration scaffolding.",
+      "priority": "high",
+      "status": "pending",
+      "created_at": "2026-01-26T00:00:00Z",
+      "depends_on": "TASK-001",
+      "opportunity_id": "OPP-001"
+    },
+    {
+      "id": "TASK-003",
+      "title": "Create state directory structure",
+      "description": "Set up the state directory with initial JSON files: pipeline.json, costs.json, playbook.json",
+      "priority": "medium",
+      "status": "pending",
+      "created_at": "2026-01-26T00:00:00Z"
+    }
+  ],
   "pending_research": [
     {
       "id": "RESEARCH-001",
@@ -51,7 +80,7 @@
       "why_needed": "Required for autonomous operation - I need to alert you when action needed"
     },
     {
-      "id": "Q-002", 
+      "id": "Q-002",
       "question": "What is explicitly off-limits for autonomous action?",
       "why_needed": "Need to know boundaries before I start acting autonomously"
     }

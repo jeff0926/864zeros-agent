@@ -1,0 +1,24 @@
+# 864zeros Agent Dependencies
+# Direct API calls - NO frameworks (LangChain, CrewAI, n8n)
+
+# Anthropic SDK for Claude
+anthropic>=0.40.0
+
+# Google AI SDK for Gemini
+google-generativeai>=0.8.0
+
+# HTTP requests
+httpx>=0.27.0
+requests>=2.31.0
+
+# Async support
+aiohttp>=3.9.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Notifications (Telegram)
+python-telegram-bot>=21.0
+
+# Data handling
+pydantic>=2.5.0
