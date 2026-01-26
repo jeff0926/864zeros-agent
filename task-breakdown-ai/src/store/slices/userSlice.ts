@@ -11,15 +11,18 @@ interface UserState {
   isAuthenticated: boolean;
 }
 
+// Generate a stable local user ID (stored in memory for this session)
+const LOCAL_USER_ID = 'local-user-' + Math.random().toString(36).substring(2, 11);
+
 const initialState: UserState = {
-  id: null,
-  email: null,
+  id: LOCAL_USER_ID,
+  email: 'local@taskbreakdown.app',
   preferences: {
     workingHours: { start: '09:00', end: '17:00' },
     notificationSettings: { enabled: true, frequency: 'daily' },
     aiCreativityLevel: 7,
   },
-  isAuthenticated: false,
+  isAuthenticated: true, // Auto-authenticate for local-only version
 };
 
 const userSlice = createSlice({

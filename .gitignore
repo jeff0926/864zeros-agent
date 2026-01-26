@@ -1,2 +1,13 @@
 __pycache__/
 node_modules/
+
+# Environment files with secrets
+.env
+*.env.local
+
+# Android build artifacts
+task-breakdown-ai/android/.gradle/
+task-breakdown-ai/android/app/build/
+task-breakdown-ai/android/build/
+*.apk
+*.aab

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Task, Subtask } from '../../types/Task';
-import { supabaseService } from '../../services/supabaseService';
+import { Task } from '../../types/Task';
+import { localStorageService } from '../../services/localStorageService';
 import { aiService } from '../../services/aiService';
 
 interface TasksState {
@@ -19,14 +19,14 @@ const initialState: TasksState = {
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async (userId: string) => {
-    return await supabaseService.getTasks(userId);
+    return await localStorageService.getTasks(userId);
   }
 );
 
 export const createTaskWithBreakdown = createAsyncThunk(
   'tasks/createTaskWithBreakdown',
   async ({ taskDescription, userId }: { taskDescription: string; userId: string }) => {
-    // Generate subtasks using AI
+    // Generate subtasks using AI (Claude)
     const aiSubtasks = await aiService.breakdownTask(taskDescription);
 
     // Transform AI subtasks to include required status field
@@ -35,8 +35,8 @@ export const createTaskWithBreakdown = createAsyncThunk(
       status: 'pending' as const,
     }));
 
-    // Create task in database
-    const task = await supabaseService.createTask({
+    // Create task in local storage
+    const task = await localStorageService.createTask({
       title: taskDescription,
       description: taskDescription,
       status: 'pending',
@@ -46,6 +46,22 @@ export const createTaskWithBreakdown = createAsyncThunk(
     });
 
     return task;
+  }
+);
+
+export const deleteTask = createAsyncThunk(
+  'tasks/deleteTask',
+  async (taskId: string) => {
+    await localStorageService.deleteTask(taskId);
+    return taskId;
+  }
+);
+
+export const persistToggleSubtask = createAsyncThunk(
+  'tasks/persistToggleSubtask',
+  async ({ taskId, subtaskId }: { taskId: string; subtaskId: string }) => {
+    await localStorageService.toggleSubtaskStatus(taskId, subtaskId);
+    return { taskId, subtaskId };
   }
 );
 
@@ -88,11 +104,23 @@ const tasksSlice = createSlice({
       })
       .addCase(createTaskWithBreakdown.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks.push(action.payload);
+        state.tasks.unshift(action.payload);
       })
       .addCase(createTaskWithBreakdown.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to create task';
+      })
+      .addCase(deleteTask.fulfilled, (state, action) => {
+        state.tasks = state.tasks.filter(t => t.id !== action.payload);
+      })
+      .addCase(persistToggleSubtask.fulfilled, (state, action) => {
+        const task = state.tasks.find(t => t.id === action.payload.taskId);
+        if (task && task.subtasks) {
+          const subtask = task.subtasks.find(st => st.id === action.payload.subtaskId);
+          if (subtask) {
+            subtask.status = subtask.status === 'completed' ? 'pending' : 'completed';
+          }
+        }
       });
   },
 });
