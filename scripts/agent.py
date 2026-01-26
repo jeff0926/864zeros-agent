@@ -14,7 +14,9 @@ from pathlib import Path
 from typing import Any
 
 import anthropic
-import httpx
+
+# Import robust Telegram notifier
+from telegram_notify import TelegramNotifier as BaseTelegramNotifier
 
 # Configuration
 REPO_ROOT = Path(__file__).parent.parent
@@ -24,41 +26,29 @@ STATE_DIR = REPO_ROOT / "state"
 MODEL = "claude-sonnet-4-20250514"
 MAX_TURNS = 25
 
-# Telegram configuration
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+class AgentTelegramNotifier:
+    """Wrapper around TelegramNotifier with agent-specific methods."""
 
-class TelegramNotifier:
-    """Send notifications via Telegram Bot API."""
-
-    def __init__(self, bot_token: str | None, chat_id: str | None):
-        self.bot_token = bot_token
-        self.chat_id = chat_id
-        self.enabled = bool(bot_token and chat_id)
-        if not self.enabled:
-            print("Telegram notifications disabled (missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID)")
-
-    def send(self, message: str, parse_mode: str = "Markdown") -> bool:
-        """Send a message to the configured chat."""
-        if not self.enabled:
-            return False
+    def __init__(self):
         try:
-            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
-            response = httpx.post(
-                url,
-                json={
-                    "chat_id": self.chat_id,
-                    "text": message,
-                    "parse_mode": parse_mode,
-                },
-                timeout=10,
-            )
-            response.raise_for_status()
-            return True
+            self._notifier = BaseTelegramNotifier()
+            self.enabled = not self._notifier.mock_mode
+            print(f"Telegram notifications: {'LIVE' if self.enabled else 'MOCK MODE'}")
         except Exception as e:
-            print(f"Telegram notification failed: {e}")
+            print(f"Telegram setup failed: {e}")
+            self._notifier = None
+            self.enabled = False
+
+    def send(self, message: str) -> bool:
+        """Send a message via Telegram."""
+        if not self._notifier:
+            print(f"[NO TELEGRAM] {message}")
             return False
+        success, result = self._notifier.send_message(message)
+        if not success:
+            print(f"Telegram send failed: {result}")
+        return success
 
     def notify_task_start(self, task: dict) -> None:
         """Notify when a task starts processing."""
@@ -100,7 +90,7 @@ class TelegramNotifier:
 
 
 # Global notifier instance
-telegram = TelegramNotifier(TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
+telegram = AgentTelegramNotifier()
 
 
 def load_tasks() -> list[dict]:
