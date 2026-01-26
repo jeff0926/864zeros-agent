@@ -43,24 +43,24 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </Text>
           <View style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor(item.status, theme) }
+            { backgroundColor: getStatusColor(item.status, theme) },
           ]}>
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
-        
+
         {totalSubtasks > 0 && (
           <View style={styles.progressContainer}>
             <View style={[
               styles.progressBar,
-              { backgroundColor: theme.colors.border }
+              { backgroundColor: theme.colors.border },
             ]}>
               <View style={[
                 styles.progressFill,
                 {
                   width: `${progress}%`,
-                  backgroundColor: theme.colors.primary
-                }
+                  backgroundColor: theme.colors.primary,
+                },
               ]} />
             </View>
             <Text style={[styles.progressText, { color: theme.colors.textSecondary }]}>
@@ -68,7 +68,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </Text>
           </View>
         )}
-        
+
         <Text style={[styles.taskDescription, { color: theme.colors.textSecondary }]}>
           {item.description}
         </Text>
@@ -76,11 +76,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const getStatusColor = (status: string, theme: any) => {
+  const getStatusColor = (status: string, themeColors: any) => {
     switch (status) {
-      case 'completed': return theme.colors.success;
-      case 'in_progress': return theme.colors.warning;
-      default: return theme.colors.textSecondary;
+      case 'completed': return themeColors.colors.success;
+      case 'in_progress': return themeColors.colors.warning;
+      default: return themeColors.colors.textSecondary;
     }
   };
 

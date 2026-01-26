@@ -24,7 +24,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
   const [taskDescription, setTaskDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [preview, setPreview] = useState<any[]>([]);
-  
+
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.tasks);
   const { id: userId } = useSelector((state: RootState) => state.user);
@@ -63,11 +63,11 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
     try {
       await dispatch(createTaskWithBreakdown({
         taskDescription: taskDescription.trim(),
-        userId
+        userId,
       })).unwrap();
-      
+
       Alert.alert('Success', 'Task created successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
+        { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to create task. Please try again.');
@@ -76,7 +76,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 
   const renderPreviewItem = (item: any, index: number) => (
     <View key={index} style={[styles.previewItem, { backgroundColor: theme.colors.surface }]}>
-      <View style={styles.previewHeader}>
+      <View style={styles.previewItemHeader}>
         <Text style={[styles.previewOrder, { color: theme.colors.primary }]}>
           {item.order + 1}.
         </Text>
@@ -90,7 +90,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
           </Text>
         </View>
       </View>
-      
+
       {item.description && (
         <Text style={[styles.previewDescription, { color: theme.colors.textSecondary }]}>
           {item.description}
@@ -107,7 +107,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
         <Text style={[styles.title, { color: theme.colors.text }]}>
           Create New Task
         </Text>
-        
+
         <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
           Describe your task and let AI break it down into actionable steps
         </Text>
@@ -116,7 +116,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
           <Text style={[styles.label, { color: theme.colors.text }]}>
             Task Description
           </Text>
-          
+
           <TextInput
             style={[
               styles.textInput,
@@ -124,7 +124,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
                 backgroundColor: theme.colors.surface,
                 color: theme.colors.text,
                 borderColor: theme.colors.border,
-              }
+              },
             ]}
             value={taskDescription}
             onChangeText={setTaskDescription}
@@ -134,14 +134,14 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
             numberOfLines={3}
             textAlignVertical="top"
           />
-          
+
           <TouchableOpacity
             style={[
               styles.previewButton,
-              { 
+              {
                 backgroundColor: theme.colors.primary,
-                opacity: (!taskDescription.trim() || isGenerating) ? 0.6 : 1
-              }
+                opacity: (!taskDescription.trim() || isGenerating) ? 0.6 : 1,
+              },
             ]}
             onPress={handleGeneratePreview}
             disabled={!taskDescription.trim() || isGenerating}
@@ -163,7 +163,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
               <Text style={[styles.previewSectionTitle, { color: theme.colors.text }]}>
                 AI Generated Breakdown
               </Text>
-              
+
               {totalEstimatedTime > 0 && (
                 <View style={styles.totalTimeContainer}>
                   <Icon name="clock" size={14} color={theme.colors.primary} />
@@ -189,10 +189,10 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.createButton,
-                  { 
+                  {
                     backgroundColor: theme.colors.success,
-                    opacity: loading ? 0.6 : 1
-                  }
+                    opacity: loading ? 0.6 : 1,
+                  },
                 ]}
                 onPress={handleCreateTask}
                 disabled={loading}
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 8,
   },
-  previewHeader: {
+  previewItemHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 8,

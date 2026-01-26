@@ -17,13 +17,13 @@ import { useTheme } from '../contexts/ThemeContext';
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
-  const { theme, toggleTheme, isDarkMode } = useTheme();
+  const { theme, toggleTheme, isDark: isDarkMode } = useTheme();
 
   // Calculate user stats
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
   const totalSubtasks = tasks.reduce((sum, task) => sum + (task.subtasks?.length || 0), 0);
-  const completedSubtasks = tasks.reduce((sum, task) => 
+  const completedSubtasks = tasks.reduce((sum, task) =>
     sum + (task.subtasks?.filter(st => st.status === 'completed').length || 0), 0
   );
 
@@ -77,7 +77,7 @@ const ProfileScreen: React.FC = () => {
           )}
         </View>
       </View>
-      
+
       {rightComponent || (
         <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
       )}
@@ -95,11 +95,11 @@ const ProfileScreen: React.FC = () => {
             </Text>
           </View>
         </View>
-        
+
         <Text style={[styles.userName, { color: theme.colors.text }]}>
           {user.email || 'Anonymous User'}
         </Text>
-        
+
         <Text style={[styles.userSubtitle, { color: theme.colors.textSecondary }]}>
           Task Management Pro
         </Text>
@@ -110,7 +110,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Your Statistics
         </Text>
-        
+
         <View style={styles.statsGrid}>
           <StatCard title="Completed Tasks" value={completedTasks} icon="check-circle" />
           <StatCard title="Active Tasks" value={inProgressTasks} icon="play-circle" />
@@ -124,7 +124,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Settings
         </Text>
-        
+
         <View style={styles.settingsGroup}>
           <SettingItem
             title="Dark Mode"
@@ -138,14 +138,14 @@ const ProfileScreen: React.FC = () => {
               />
             }
           />
-          
+
           <SettingItem
             title="Notifications"
             subtitle="Manage notification preferences"
             icon="bell"
             onPress={handleNotificationPress}
           />
-          
+
           <SettingItem
             title="Data & Privacy"
             subtitle="Backup and privacy settings"
@@ -160,7 +160,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Support
         </Text>
-        
+
         <View style={styles.settingsGroup}>
           <SettingItem
             title="Help & Support"
@@ -168,7 +168,7 @@ const ProfileScreen: React.FC = () => {
             icon="help-circle"
             onPress={handleSupportPress}
           />
-          
+
           <SettingItem
             title="About"
             subtitle="App version and information"

@@ -37,7 +37,7 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
     dispatch(toggleSubtask({ taskId: task.id, subtaskId }));
   };
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = (newStatus: Task['status']) => {
     dispatch(updateTaskStatus({ taskId: task.id, status: newStatus }));
     Alert.alert('Status Updated', `Task status changed to ${newStatus}`);
   };
@@ -47,10 +47,10 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
       key={subtask.id}
       style={[
         styles.subtaskItem,
-        { 
+        {
           backgroundColor: theme.colors.surface,
           borderLeftColor: subtask.status === 'completed' ? theme.colors.success : theme.colors.border,
-        }
+        },
       ]}
       onPress={() => handleSubtaskToggle(subtask.id)}
     >
@@ -63,21 +63,21 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
           />
           <Text style={[
             styles.subtaskTitle,
-            { 
+            {
               color: subtask.status === 'completed' ? theme.colors.textSecondary : theme.colors.text,
               textDecorationLine: subtask.status === 'completed' ? 'line-through' : 'none',
-            }
+            },
           ]}>
             {subtask.title}
           </Text>
         </View>
-        
+
         {subtask.description && (
           <Text style={[styles.subtaskDescription, { color: theme.colors.textSecondary }]}>
             {subtask.description}
           </Text>
         )}
-        
+
         {subtask.estimated_duration && (
           <View style={styles.durationContainer}>
             <Icon name="clock" size={14} color={theme.colors.textSecondary} />
@@ -104,11 +104,11 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
         <Text style={[styles.title, { color: theme.colors.text }]}>
           {task.title}
         </Text>
-        
+
         <View style={styles.statusContainer}>
           <View style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor(task.status) }
+            { backgroundColor: getStatusColor(task.status) },
           ]}>
             <Text style={styles.statusText}>{task.status.replace('_', ' ')}</Text>
           </View>
@@ -130,17 +130,17 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
                 {Math.round(progress)}%
               </Text>
             </View>
-            
+
             <View style={[styles.progressBar, { backgroundColor: theme.colors.border }]}>
               <View style={[
                 styles.progressFill,
                 {
                   width: `${progress}%`,
                   backgroundColor: theme.colors.success,
-                }
+                },
               ]} />
             </View>
-            
+
             <Text style={[styles.progressText, { color: theme.colors.textSecondary }]}>
               {completedSubtasks} of {totalSubtasks} subtasks completed
             </Text>
@@ -153,7 +153,7 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
             Subtasks
           </Text>
-          
+
           {task.subtasks?.map(renderSubtask)}
         </View>
       )}
@@ -162,7 +162,7 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Actions
         </Text>
-        
+
         <TouchableOpacity
           style={[styles.actionButton, { borderColor: theme.colors.warning }]}
           onPress={() => handleStatusChange('in_progress')}
@@ -172,7 +172,7 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
             Start Task
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[styles.actionButton, { borderColor: theme.colors.success }]}
           onPress={() => handleStatusChange('completed')}

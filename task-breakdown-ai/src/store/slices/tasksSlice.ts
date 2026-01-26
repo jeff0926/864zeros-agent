@@ -27,8 +27,14 @@ export const createTaskWithBreakdown = createAsyncThunk(
   'tasks/createTaskWithBreakdown',
   async ({ taskDescription, userId }: { taskDescription: string; userId: string }) => {
     // Generate subtasks using AI
-    const subtasks = await aiService.breakdownTask(taskDescription);
-    
+    const aiSubtasks = await aiService.breakdownTask(taskDescription);
+
+    // Transform AI subtasks to include required status field
+    const subtasks = aiSubtasks.map(st => ({
+      ...st,
+      status: 'pending' as const,
+    }));
+
     // Create task in database
     const task = await supabaseService.createTask({
       title: taskDescription,
@@ -38,7 +44,7 @@ export const createTaskWithBreakdown = createAsyncThunk(
       user_id: userId,
       subtasks,
     });
-    
+
     return task;
   }
 );
@@ -47,7 +53,7 @@ const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {
-    updateTaskStatus: (state, action: PayloadAction<{ taskId: string; status: string }>) => {
+    updateTaskStatus: (state, action: PayloadAction<{ taskId: string; status: Task['status'] }>) => {
       const task = state.tasks.find(t => t.id === action.payload.taskId);
       if (task) {
         task.status = action.payload.status;

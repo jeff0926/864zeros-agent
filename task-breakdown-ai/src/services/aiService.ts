@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
+import { OPENAI_API_KEY } from '@env';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-openai-api-key',
+  apiKey: OPENAI_API_KEY || '',
 });
 
 interface BreakdownResult {
