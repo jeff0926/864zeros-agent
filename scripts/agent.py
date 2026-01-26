@@ -14,9 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import anthropic
-
-# Import robust Telegram notifier
-from telegram_notify import TelegramNotifier as BaseTelegramNotifier
+import requests
 
 # Configuration
 REPO_ROOT = Path(__file__).parent.parent
@@ -26,29 +24,89 @@ STATE_DIR = REPO_ROOT / "state"
 MODEL = "claude-sonnet-4-20250514"
 MAX_TURNS = 25
 
+# Debug: Check environment variables at startup
+print("=" * 50)
+print("TELEGRAM DEBUG INFO")
+print("=" * 50)
+print(f"TELEGRAM_BOT_TOKEN exists: {bool(os.environ.get('TELEGRAM_BOT_TOKEN'))}")
+print(f"TELEGRAM_CHAT_ID exists: {bool(os.environ.get('TELEGRAM_CHAT_ID'))}")
+_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+_chat_id = os.environ.get('TELEGRAM_CHAT_ID', '')
+print(f"TELEGRAM_BOT_TOKEN length: {len(_token)}")
+print(f"TELEGRAM_CHAT_ID value: {_chat_id}")
+if _token:
+    print(f"Token format valid (contains ':'): {':' in _token}")
+print("=" * 50)
+
 
 class AgentTelegramNotifier:
-    """Wrapper around TelegramNotifier with agent-specific methods."""
+    """Wrapper around TelegramNotifier with direct API calls and debug logging."""
 
     def __init__(self):
-        try:
-            self._notifier = BaseTelegramNotifier()
-            self.enabled = not self._notifier.mock_mode
-            print(f"Telegram notifications: {'LIVE' if self.enabled else 'MOCK MODE'}")
-        except Exception as e:
-            print(f"Telegram setup failed: {e}")
-            self._notifier = None
-            self.enabled = False
+        self.bot_token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+        self.chat_id = os.environ.get('TELEGRAM_CHAT_ID', '').strip()
+        self.enabled = bool(self.bot_token and self.chat_id)
+
+        print(f"[TELEGRAM INIT] enabled={self.enabled}")
+
+        if self.enabled:
+            # Validate token by calling getMe
+            try:
+                url = f"https://api.telegram.org/bot{self.bot_token}/getMe"
+                print(f"[TELEGRAM] Validating bot token...")
+                response = requests.get(url, timeout=10)
+                print(f"[TELEGRAM] getMe status_code={response.status_code}")
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('ok'):
+                        print(f"[TELEGRAM] Bot validated: @{data['result'].get('username')}")
+                    else:
+                        print(f"[TELEGRAM] Bot validation failed: {data}")
+                        self.enabled = False
+                else:
+                    print(f"[TELEGRAM] Bot validation failed: HTTP {response.status_code}")
+                    print(f"[TELEGRAM] Response: {response.text[:200]}")
+                    self.enabled = False
+            except Exception as e:
+                print(f"[TELEGRAM] Validation error: {e}")
+                self.enabled = False
 
     def send(self, message: str) -> bool:
-        """Send a message via Telegram."""
-        if not self._notifier:
-            print(f"[NO TELEGRAM] {message}")
+        """Send a message via Telegram with debug logging."""
+        print(f"[TELEGRAM] Attempting to send message (enabled={self.enabled})")
+
+        if not self.enabled:
+            print(f"[TELEGRAM DISABLED] Would send: {message[:100]}...")
             return False
-        success, result = self._notifier.send_message(message)
-        if not success:
-            print(f"Telegram send failed: {result}")
-        return success
+
+        try:
+            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            payload = {
+                'chat_id': self.chat_id,
+                'text': message,
+                'parse_mode': 'Markdown'
+            }
+
+            print(f"[TELEGRAM] Sending to chat_id={self.chat_id}")
+            response = requests.post(url, json=payload, timeout=10)
+            print(f"[TELEGRAM] Response status_code={response.status_code}")
+
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('ok'):
+                    print(f"[TELEGRAM] Message sent successfully! message_id={data['result'].get('message_id')}")
+                    return True
+                else:
+                    print(f"[TELEGRAM] API error: {data.get('description')}")
+                    return False
+            else:
+                print(f"[TELEGRAM] HTTP error: {response.status_code}")
+                print(f"[TELEGRAM] Response body: {response.text[:300]}")
+                return False
+
+        except Exception as e:
+            print(f"[TELEGRAM] Send error: {e}")
+            return False
 
     def notify_task_start(self, task: dict) -> None:
         """Notify when a task starts processing."""
