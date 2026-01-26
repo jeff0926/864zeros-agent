@@ -331,71 +331,71 @@ def run_agent() -> None:
         if tasks:
             telegram.notify_task_start(tasks[0])
 
-    messages = [
-        {
-            "role": "user",
-            "content": "Process all pending tasks in the queue. Work autonomously and update status as you complete each task."
-        }
-    ]
+        messages = [
+            {
+                "role": "user",
+                "content": "Process all pending tasks in the queue. Work autonomously and update status as you complete each task."
+            }
+        ]
 
-    for turn in range(MAX_TURNS):
-        print(f"\n--- Turn {turn + 1}/{MAX_TURNS} ---")
+        for turn in range(MAX_TURNS):
+            print(f"\n--- Turn {turn + 1}/{MAX_TURNS} ---")
 
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=4096,
-            system=build_system_prompt(),
-            tools=TOOLS,
-            messages=messages
-        )
+            response = client.messages.create(
+                model=MODEL,
+                max_tokens=4096,
+                system=build_system_prompt(),
+                tools=TOOLS,
+                messages=messages
+            )
 
-        # Process the response
-        assistant_content = []
-        tool_results = []
+            # Process the response
+            assistant_content = []
+            tool_results = []
 
-        for block in response.content:
-            if block.type == "text":
-                print(f"Agent: {block.text}")
-                assistant_content.append(block)
-            elif block.type == "tool_use":
-                print(f"Tool call: {block.name}({json.dumps(block.input)[:100]}...)")
-                assistant_content.append(block)
+            for block in response.content:
+                if block.type == "text":
+                    print(f"Agent: {block.text}")
+                    assistant_content.append(block)
+                elif block.type == "tool_use":
+                    print(f"Tool call: {block.name}({json.dumps(block.input)[:100]}...)")
+                    assistant_content.append(block)
 
-                result = execute_tool(block.name, block.input)
-                print(f"Result: {result[:200]}...")
+                    result = execute_tool(block.name, block.input)
+                    print(f"Result: {result[:200]}...")
 
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": result
-                })
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": result
+                    })
 
-        # Add assistant message
-        messages.append({"role": "assistant", "content": assistant_content})
+            # Add assistant message
+            messages.append({"role": "assistant", "content": assistant_content})
 
-        # If there were tool calls, add results and continue
-        if tool_results:
-            messages.append({"role": "user", "content": tool_results})
-        else:
-            # No tool calls means agent is done
-            print("\nAgent completed processing.")
-            break
+            # If there were tool calls, add results and continue
+            if tool_results:
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                # No tool calls means agent is done
+                print("\nAgent completed processing.")
+                break
 
-        # Check stop reason
-        if response.stop_reason == "end_turn" and not tool_results:
-            print("\nAgent signaled completion.")
-            break
+            # Check stop reason
+            if response.stop_reason == "end_turn" and not tool_results:
+                print("\nAgent signaled completion.")
+                break
 
-        # Track completed tasks for notifications
-        for block in response.content:
-            if block.type == "tool_use" and block.name == "update_task_status":
-                if block.input.get("status") == "completed":
-                    tasks_processed += 1
-                    # Find the task that was completed
-                    for task in tasks:
-                        if task.get("id") == block.input.get("task_id"):
-                            telegram.notify_task_complete(task, block.input.get("notes", ""))
-                            break
+            # Track completed tasks for notifications
+            for block in response.content:
+                if block.type == "tool_use" and block.name == "update_task_status":
+                    if block.input.get("status") == "completed":
+                        tasks_processed += 1
+                        # Find the task that was completed
+                        for task in tasks:
+                            if task.get("id") == block.input.get("task_id"):
+                                telegram.notify_task_complete(task, block.input.get("notes", ""))
+                                break
 
         print("\nAgent run finished.")
         telegram.notify_agent_complete(tasks_processed)
