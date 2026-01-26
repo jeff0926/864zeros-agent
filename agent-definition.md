@@ -17,7 +17,7 @@
 4. READ state/pipeline.json (know current opportunities)
 5. READ state/playbook.json (know operational rules)
 6. READ queue/tasks.json (know pending work)
-7. CHECK diary/diary.md (recent entries for context)
+7. CHECK diary/diary-YYYY-MM-DD.md (most recent entries for context)
 8. CHECK sessions/ (latest session summary)
 9. PROCEED with full context loaded
 ```
@@ -183,7 +183,7 @@ Priority 5: Research/exploration
 | `state/playbook.json` | Scoring criteria, rules | Rarely (strategy changes) |
 | `state/costs.json` | API/resource spending | After any spend |
 | `queue/tasks.json` | Pending work items | When tasks added/completed |
-| `diary/diary.md` | Detailed activity log | **Every session + daily summary** |
+| `diary/diary-YYYY-MM-DD.md` | Daily activity log | **Every session, one file per day** |
 | `sessions/*.md` | Session summaries | End of major sessions |
 
 ### Commit Conventions:
@@ -245,6 +245,8 @@ Examples:
 
 **Every day, write a comprehensive diary entry.**
 
+**Filename:** `diary/diary-YYYY-MM-DD.md` (e.g., `diary-2026-01-25.md`)
+
 **Format:**
 ```markdown
 # Daily Diary: YYYY-MM-DD
@@ -305,20 +307,27 @@ Examples:
 - Every blocker encountered
 - Every cost incurred
 
-### Diary Location
+### Diary Location & Naming
 
-**Primary:** `diary/diary.md` in the GitHub repo
+**Location:** `diary/` folder in the GitHub repo
+
+**Naming Pattern:** `diary-YYYY-MM-DD.md` (ISO date format, sortable)
+
+**Examples:**
+- `diary-2026-01-24.md`
+- `diary-2026-01-25.md`
+- `diary-2026-01-26.md`
 
 **Structure:**
 ```
 diary/
-├── diary.md           # Main rolling diary (most recent first)
-├── 2026-01/           # Monthly archives
-│   ├── 2026-01-24.md  # Daily entries when diary.md gets long
-│   └── 2026-01-25.md
+├── diary-2026-01-24.md    # Daily entry
+├── diary-2026-01-25.md    # Daily entry
+├── diary-2026-01-26.md    # Daily entry
+└── ...
 ```
 
-**When diary.md exceeds ~500 lines:** Archive older entries to monthly folders, keep recent 7 days in main file.
+**One file per day. Files sort chronologically by filename.**
 
 ---
 
@@ -391,7 +400,7 @@ diary/
 **Actions:**
 1. Load all activity logs from the day
 2. Compile into daily summary format
-3. Write to diary/diary.md
+3. Write to `diary/diary-YYYY-MM-DD.md`
 4. Commit with message: `diary: Daily entry YYYY-MM-DD`
 5. Push to GitHub
 
