@@ -1,0 +1,166 @@
+name: QA Gates
+
+on:
+  push:
+    branches: [main, 'claude/*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      passed:
+        description: "Whether all QA gates passed"
+        value: ${{ jobs.qa-summary.outputs.passed }}
+
+jobs:
+  python-qa:
+    name: Python QA
+    runs-on: ubuntu-latest
+    outputs:
+      lint-passed: ${{ steps.lint.outcome == 'success' }}
+      syntax-passed: ${{ steps.syntax.outcome == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 black isort
+
+      - name: Run flake8 (linting)
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "::group::Flake8 Results"
+          flake8 scripts/ --max-line-length=120 --ignore=E501,W503,E402 --count --show-source --statistics
+          echo "::endgroup::"
+
+      - name: Verify Python syntax
+        id: syntax
+        run: |
+          echo "::group::Syntax Check"
+          find scripts/ -name "*.py" -exec python -m py_compile {} \;
+          echo "All Python files have valid syntax"
+          echo "::endgroup::"
+
+      - name: Check for hardcoded secrets
+        id: secrets
+        run: |
+          echo "::group::Secret Scan"
+          # Patterns that indicate hardcoded secrets
+          if grep -rn --include="*.py" -E "(api_key|password|secret|token)\s*=\s*['\"][a-zA-Z0-9]{20,}['\"]" scripts/ 2>/dev/null; then
+            echo "::error::Possible hardcoded secrets detected!"
+            exit 1
+          else
+            echo "No hardcoded secrets found"
+          fi
+          echo "::endgroup::"
+
+  js-qa:
+    name: JavaScript/TypeScript QA
+    runs-on: ubuntu-latest
+    outputs:
+      lint-passed: ${{ steps.lint.outcome == 'success' }}
+      build-passed: ${{ steps.build.outcome == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check for JS project
+        id: check
+        run: |
+          if [ -d "task-breakdown-ai" ] && [ -f "task-breakdown-ai/package.json" ]; then
+            echo "has_project=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_project=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.has_project == 'true'
+        working-directory: task-breakdown-ai
+        run: npm install --legacy-peer-deps
+
+      - name: Run ESLint
+        id: lint
+        if: steps.check.outputs.has_project == 'true'
+        continue-on-error: true
+        working-directory: task-breakdown-ai
+        run: |
+          echo "::group::ESLint Results"
+          npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=50 || true
+          echo "::endgroup::"
+
+      - name: TypeScript check
+        id: build
+        if: steps.check.outputs.has_project == 'true'
+        continue-on-error: true
+        working-directory: task-breakdown-ai
+        run: |
+          echo "::group::TypeScript Check"
+          npx tsc --noEmit || true
+          echo "::endgroup::"
+
+      - name: Skip message
+        if: steps.check.outputs.has_project == 'false'
+        run: echo "No JS/TS project found, skipping"
+
+  documentation-qa:
+    name: Documentation QA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check README exists
+        run: |
+          if [ ! -f "README.md" ]; then
+            echo "::error::README.md is missing"
+            exit 1
+          fi
+          echo "README.md exists"
+
+      - name: Check quality-standards.md exists
+        run: |
+          if [ ! -f "quality-standards.md" ]; then
+            echo "::error::quality-standards.md is missing"
+            exit 1
+          fi
+          echo "quality-standards.md exists"
+
+      - name: Check CLAUDE.md exists
+        run: |
+          if [ ! -f "CLAUDE.md" ]; then
+            echo "::error::CLAUDE.md is missing"
+            exit 1
+          fi
+          echo "CLAUDE.md exists"
+
+  qa-summary:
+    name: QA Summary
+    needs: [python-qa, js-qa, documentation-qa]
+    runs-on: ubuntu-latest
+    outputs:
+      passed: ${{ steps.check.outputs.passed }}
+    steps:
+      - name: Check all gates
+        id: check
+        run: |
+          echo "## QA Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Python Syntax | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All required QA gates passed!" >> $GITHUB_STEP_SUMMARY
+          echo "passed=true" >> $GITHUB_OUTPUT

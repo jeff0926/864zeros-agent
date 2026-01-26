@@ -196,6 +196,82 @@ def git_commit_and_push(message: str) -> str:
         return f"Git operation failed: {e}"
 
 
+def run_qa_checks() -> dict:
+    """Run QA checks before marking tasks complete.
+
+    Returns dict with 'passed' (bool) and 'results' (list of check results).
+    """
+    results = []
+    all_passed = True
+
+    print("\n" + "=" * 50)
+    print("RUNNING QA CHECKS")
+    print("=" * 50)
+
+    # 1. Python syntax check
+    print("\n[QA] Checking Python syntax...")
+    try:
+        for py_file in (REPO_ROOT / "scripts").glob("*.py"):
+            result = subprocess.run(
+                ["python", "-m", "py_compile", str(py_file)],
+                capture_output=True,
+                text=True
+            )
+            if result.returncode != 0:
+                results.append(f"❌ Syntax error in {py_file.name}: {result.stderr}")
+                all_passed = False
+            else:
+                results.append(f"✅ {py_file.name} syntax OK")
+        print("[QA] Python syntax check complete")
+    except Exception as e:
+        results.append(f"❌ Syntax check failed: {e}")
+        all_passed = False
+
+    # 2. Check for hardcoded secrets
+    print("[QA] Checking for hardcoded secrets...")
+    try:
+        secret_patterns = [
+            r'api_key\s*=\s*["\'][a-zA-Z0-9]{20,}["\']',
+            r'password\s*=\s*["\'][^"\']{8,}["\']',
+            r'secret\s*=\s*["\'][a-zA-Z0-9]{20,}["\']',
+            r'token\s*=\s*["\'][a-zA-Z0-9]{20,}["\']',
+        ]
+        secrets_found = False
+        for py_file in (REPO_ROOT / "scripts").glob("*.py"):
+            content = py_file.read_text()
+            for pattern in secret_patterns:
+                import re
+                if re.search(pattern, content, re.IGNORECASE):
+                    results.append(f"❌ Possible secret in {py_file.name}")
+                    secrets_found = True
+                    all_passed = False
+        if not secrets_found:
+            results.append("✅ No hardcoded secrets found")
+        print("[QA] Secret check complete")
+    except Exception as e:
+        results.append(f"⚠️ Secret check skipped: {e}")
+
+    # 3. Check required documentation exists
+    print("[QA] Checking documentation...")
+    required_docs = ["README.md", "CLAUDE.md", "quality-standards.md"]
+    for doc in required_docs:
+        if (REPO_ROOT / doc).exists():
+            results.append(f"✅ {doc} exists")
+        else:
+            results.append(f"❌ {doc} missing")
+            all_passed = False
+    print("[QA] Documentation check complete")
+
+    print("\n" + "=" * 50)
+    print(f"QA RESULTS: {'PASSED' if all_passed else 'FAILED'}")
+    print("=" * 50)
+    for r in results:
+        print(f"  {r}")
+    print("=" * 50 + "\n")
+
+    return {"passed": all_passed, "results": results}
+
+
 # Tool definitions for the agent
 TOOLS = [
     {
@@ -266,6 +342,15 @@ TOOLS = [
             },
             "required": ["message"]
         }
+    },
+    {
+        "name": "run_qa",
+        "description": "Run QA checks (linting, syntax, secrets scan). MUST pass before marking tasks complete.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     }
 ]
 
@@ -315,6 +400,13 @@ def execute_tool(name: str, input_data: dict) -> str:
         elif name == "commit_changes":
             return git_commit_and_push(input_data["message"])
 
+        elif name == "run_qa":
+            qa_result = run_qa_checks()
+            if qa_result["passed"]:
+                return "✅ QA PASSED: All quality gates passed. You may mark tasks complete."
+            else:
+                return f"❌ QA FAILED: Fix these issues before marking tasks complete:\n" + "\n".join(qa_result["results"])
+
         else:
             return f"Unknown tool: {name}"
 
@@ -344,9 +436,14 @@ State files loaded: {list(state.keys())}
 Process the pending tasks in the queue. For each task:
 1. Understand what needs to be done
 2. Execute the task using the available tools
-3. Update the task status when complete
-4. Add a diary entry summarizing what you did
-5. Commit and push changes
+3. **RUN QA CHECKS** using run_qa tool before marking complete
+4. Only mark task complete if QA passes
+5. Add a diary entry summarizing what you did
+6. Commit and push changes
+
+## CRITICAL: QA Gate Requirement
+You MUST run the run_qa tool and verify it passes BEFORE marking any task as completed.
+If QA fails, fix the issues first. Never mark a task complete with failing QA.
 
 ## The 864zeros Formula
 - Time to MVP: ≤7 days

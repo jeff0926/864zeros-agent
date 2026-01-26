@@ -1,7 +1,7 @@
 # 864zeros System Architecture
 ## Complete Autonomous Business Machine
-**Version:** 1.0.0  
-**Created:** 2026-01-26  
+**Version:** 1.0.0
+**Created:** 2026-01-26
 **Purpose:** Master blueprint for fully autonomous operation
 
 ---
@@ -127,7 +127,7 @@ Currently only step 5 (BUILD) partially exists. Everything else is manual or mis
 
 **Formula (from playbook.json):**
 ```
-Score = (Validated Revenue × 0.3) + (Build Speed × 0.25) + 
+Score = (Validated Revenue × 0.3) + (Build Speed × 0.25) +
         (Automation Potential × 0.25) + (Competition Gap × 0.2)
 ```
 
@@ -382,7 +382,7 @@ Without QA, we ship broken code. This blocks everything.
 
 **Tasks:**
 1. Create `quality-standards.md` with lint/test/build rules
-2. Create `.github/workflows/qa.yml` 
+2. Create `.github/workflows/qa.yml`
 3. Update `scripts/agent.py` to check QA before task completion
 4. Add ESLint config for JS/TS projects
 5. Add pytest setup for Python code

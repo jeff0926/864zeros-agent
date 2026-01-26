@@ -19,7 +19,79 @@ on:
         type: string
 
 jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Run Python linting (flake8)
+        run: |
+          echo "Running Python linting..."
+          flake8 scripts/ --max-line-length=120 --ignore=E501,W503 --exit-zero
+          echo "Python linting complete"
+
+      - name: Verify Python syntax
+        run: |
+          echo "Checking Python syntax..."
+          python -m py_compile scripts/agent.py
+          python -m py_compile scripts/telegram_notify.py || true
+          echo "Python syntax check complete"
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for hardcoded secrets..."
+          # Check for common secret patterns (will warn but not fail)
+          if grep -rE "(api_key|password|secret_key|private_key)\s*=\s*['\"][^'\"]{10,}['\"]" --include="*.py" --include="*.js" --include="*.ts" . 2>/dev/null; then
+            echo "WARNING: Possible hardcoded secrets detected!"
+          else
+            echo "No obvious hardcoded secrets found"
+          fi
+
+      - name: Install JS dependencies (if exists)
+        run: |
+          if [ -d "task-breakdown-ai" ] && [ -f "task-breakdown-ai/package.json" ]; then
+            echo "Installing JS dependencies..."
+            cd task-breakdown-ai && npm install --legacy-peer-deps || true
+          else
+            echo "No JS project found, skipping"
+          fi
+
+      - name: Run ESLint (if exists)
+        run: |
+          if [ -d "task-breakdown-ai" ] && [ -f "task-breakdown-ai/package.json" ]; then
+            echo "Running ESLint..."
+            cd task-breakdown-ai && npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=50 || true
+          else
+            echo "No JS project found, skipping ESLint"
+          fi
+
+      - name: Verify TypeScript compilation (if exists)
+        run: |
+          if [ -d "task-breakdown-ai" ] && [ -f "task-breakdown-ai/tsconfig.json" ]; then
+            echo "Checking TypeScript compilation..."
+            cd task-breakdown-ai && npx tsc --noEmit || true
+          else
+            echo "No TypeScript config found, skipping"
+          fi
+
   run-agent:
+    needs: quality-checks
     runs-on: ubuntu-latest
     permissions:
       contents: write
