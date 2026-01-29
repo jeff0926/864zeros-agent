@@ -65,6 +65,14 @@ export const persistToggleSubtask = createAsyncThunk(
   }
 );
 
+export const persistTaskStatus = createAsyncThunk(
+  'tasks/persistTaskStatus',
+  async ({ taskId, status }: { taskId: string; status: Task['status'] }) => {
+    await localStorageService.updateTask(taskId, { status });
+    return { taskId, status };
+  }
+);
+
 const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
@@ -120,6 +128,12 @@ const tasksSlice = createSlice({
           if (subtask) {
             subtask.status = subtask.status === 'completed' ? 'pending' : 'completed';
           }
+        }
+      })
+      .addCase(persistTaskStatus.fulfilled, (state, action) => {
+        const task = state.tasks.find(t => t.id === action.payload.taskId);
+        if (task) {
+          task.status = action.payload.status;
         }
       });
   },

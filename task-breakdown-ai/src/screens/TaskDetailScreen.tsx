@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Animated,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Feather';
 
-import { AppDispatch } from '../store/store';
-import { updateTaskStatus, toggleSubtask } from '../store/slices/tasksSlice';
+import { AppDispatch, RootState } from '../store/store';
+import { toggleSubtask, persistToggleSubtask, persistTaskStatus } from '../store/slices/tasksSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import { Task, Subtask } from '../types/Task';
 
@@ -25,70 +26,119 @@ interface TaskDetailScreenProps {
 }
 
 const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }) => {
-  const { task } = route.params;
+  const { task: routeTask } = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const { theme } = useTheme();
+
+  // Get live task from Redux state instead of route params snapshot
+  const task = useSelector((state: RootState) =>
+    state.tasks.tasks.find(t => t.id === routeTask.id)
+  ) || routeTask;
+
+  // Track which subtasks are animating
+  const [animatingSubtasks, setAnimatingSubtasks] = useState<Set<string>>(new Set());
+  const [statusButtonPressed, setStatusButtonPressed] = useState<string | null>(null);
 
   const completedSubtasks = task.subtasks?.filter(st => st.status === 'completed').length || 0;
   const totalSubtasks = task.subtasks?.length || 0;
   const progress = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
 
-  const handleSubtaskToggle = (subtaskId: string) => {
+  const handleSubtaskToggle = useCallback((subtaskId: string) => {
+    // Add to animating set for visual feedback
+    setAnimatingSubtasks(prev => new Set(prev).add(subtaskId));
+
+    // Immediate UI update via synchronous reducer
     dispatch(toggleSubtask({ taskId: task.id, subtaskId }));
-  };
 
-  const handleStatusChange = (newStatus: Task['status']) => {
-    dispatch(updateTaskStatus({ taskId: task.id, status: newStatus }));
-    Alert.alert('Status Updated', `Task status changed to ${newStatus}`);
-  };
+    // Persist to storage
+    dispatch(persistToggleSubtask({ taskId: task.id, subtaskId }));
 
-  const renderSubtask = (subtask: Subtask) => (
-    <TouchableOpacity
-      key={subtask.id}
-      style={[
-        styles.subtaskItem,
-        {
-          backgroundColor: theme.colors.surface,
-          borderLeftColor: subtask.status === 'completed' ? theme.colors.success : theme.colors.border,
-        },
-      ]}
-      onPress={() => handleSubtaskToggle(subtask.id)}
-    >
-      <View style={styles.subtaskContent}>
-        <View style={styles.subtaskHeader}>
-          <Icon
-            name={subtask.status === 'completed' ? 'check-circle' : 'circle'}
-            size={20}
-            color={subtask.status === 'completed' ? theme.colors.success : theme.colors.textSecondary}
-          />
-          <Text style={[
-            styles.subtaskTitle,
-            {
-              color: subtask.status === 'completed' ? theme.colors.textSecondary : theme.colors.text,
-              textDecorationLine: subtask.status === 'completed' ? 'line-through' : 'none',
-            },
-          ]}>
-            {subtask.title}
-          </Text>
-        </View>
+    // Remove animation after short delay
+    setTimeout(() => {
+      setAnimatingSubtasks(prev => {
+        const next = new Set(prev);
+        next.delete(subtaskId);
+        return next;
+      });
+    }, 300);
+  }, [dispatch, task.id]);
 
-        {subtask.description && (
-          <Text style={[styles.subtaskDescription, { color: theme.colors.textSecondary }]}>
-            {subtask.description}
-          </Text>
-        )}
+  const handleStatusChange = useCallback((newStatus: Task['status']) => {
+    setStatusButtonPressed(newStatus);
 
-        {subtask.estimated_duration && (
-          <View style={styles.durationContainer}>
-            <Icon name="clock" size={14} color={theme.colors.textSecondary} />
-            <Text style={[styles.durationText, { color: theme.colors.textSecondary }]}>
-              {subtask.estimated_duration} min
+    // Persist to storage (this also updates Redux state)
+    dispatch(persistTaskStatus({ taskId: task.id, status: newStatus }));
+
+    // Show feedback
+    Alert.alert('Status Updated', `Task marked as ${newStatus.replace('_', ' ')}`);
+
+    // Reset button state after delay
+    setTimeout(() => setStatusButtonPressed(null), 500);
+  }, [dispatch, task.id]);
+
+  const renderSubtask = (subtask: Subtask) => {
+    const isAnimating = animatingSubtasks.has(subtask.id);
+    const isCompleted = subtask.status === 'completed';
+
+    return (
+      <TouchableOpacity
+        key={subtask.id}
+        style={[
+          styles.subtaskItem,
+          {
+            backgroundColor: isAnimating
+              ? (isCompleted ? theme.colors.success + '20' : theme.colors.surface)
+              : theme.colors.surface,
+            borderLeftColor: isCompleted ? theme.colors.success : theme.colors.border,
+            borderLeftWidth: isAnimating ? 6 : 4,
+            transform: [{ scale: isAnimating ? 0.98 : 1 }],
+          },
+        ]}
+        onPress={() => handleSubtaskToggle(subtask.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.subtaskContent}>
+          <View style={styles.subtaskHeader}>
+            <View style={[
+              styles.checkboxContainer,
+              {
+                backgroundColor: isCompleted ? theme.colors.success : 'transparent',
+                borderColor: isCompleted ? theme.colors.success : theme.colors.textSecondary,
+              }
+            ]}>
+              {isCompleted && (
+                <Icon name="check" size={14} color="white" />
+              )}
+            </View>
+            <Text style={[
+              styles.subtaskTitle,
+              {
+                color: isCompleted ? theme.colors.textSecondary : theme.colors.text,
+                textDecorationLine: isCompleted ? 'line-through' : 'none',
+              },
+            ]}>
+              {subtask.title}
             </Text>
           </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+
+          {subtask.description && (
+            <Text style={[styles.subtaskDescription, { color: theme.colors.textSecondary }]}>
+              {subtask.description}
+            </Text>
+          )}
+
+          {subtask.estimated_duration && (
+            <View style={styles.durationContainer}>
+              <Icon name="clock" size={14} color={theme.colors.textSecondary} />
+              <Text style={[styles.durationText, { color: theme.colors.textSecondary }]}>
+                {subtask.estimated_duration} min
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -164,22 +214,56 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
         </Text>
 
         <TouchableOpacity
-          style={[styles.actionButton, { borderColor: theme.colors.warning }]}
+          style={[
+            styles.actionButton,
+            {
+              borderColor: theme.colors.warning,
+              backgroundColor: statusButtonPressed === 'in_progress'
+                ? theme.colors.warning
+                : (task.status === 'in_progress' ? theme.colors.warning + '20' : 'transparent'),
+            },
+          ]}
           onPress={() => handleStatusChange('in_progress')}
+          activeOpacity={0.7}
+          disabled={task.status === 'in_progress'}
         >
-          <Icon name="play" size={16} color={theme.colors.warning} />
-          <Text style={[styles.actionButtonText, { color: theme.colors.warning }]}>
-            Start Task
+          <Icon
+            name={task.status === 'in_progress' ? 'check-circle' : 'play'}
+            size={16}
+            color={statusButtonPressed === 'in_progress' ? 'white' : theme.colors.warning}
+          />
+          <Text style={[
+            styles.actionButtonText,
+            { color: statusButtonPressed === 'in_progress' ? 'white' : theme.colors.warning },
+          ]}>
+            {task.status === 'in_progress' ? 'In Progress' : 'Start Task'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, { borderColor: theme.colors.success }]}
+          style={[
+            styles.actionButton,
+            {
+              borderColor: theme.colors.success,
+              backgroundColor: statusButtonPressed === 'completed'
+                ? theme.colors.success
+                : (task.status === 'completed' ? theme.colors.success + '20' : 'transparent'),
+            },
+          ]}
           onPress={() => handleStatusChange('completed')}
+          activeOpacity={0.7}
+          disabled={task.status === 'completed'}
         >
-          <Icon name="check" size={16} color={theme.colors.success} />
-          <Text style={[styles.actionButtonText, { color: theme.colors.success }]}>
-            Mark Complete
+          <Icon
+            name="check-circle"
+            size={16}
+            color={statusButtonPressed === 'completed' ? 'white' : theme.colors.success}
+          />
+          <Text style={[
+            styles.actionButtonText,
+            { color: statusButtonPressed === 'completed' ? 'white' : theme.colors.success },
+          ]}>
+            {task.status === 'completed' ? 'Completed' : 'Mark Complete'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -276,6 +360,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  checkboxContainer: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subtaskTitle: {
     fontSize: 16,
