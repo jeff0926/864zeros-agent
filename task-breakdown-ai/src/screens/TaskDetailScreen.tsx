@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Feather';
 
 import { AppDispatch, RootState } from '../store/store';
-import { toggleSubtask, persistToggleSubtask, persistTaskStatus } from '../store/slices/tasksSlice';
+import { updateTaskStatus, toggleSubtask, persistToggleSubtask, persistTaskStatus } from '../store/slices/tasksSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import { Task, Subtask } from '../types/Task';
 
@@ -66,13 +66,13 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
   const handleStatusChange = useCallback((newStatus: Task['status']) => {
     setStatusButtonPressed(newStatus);
 
-    // Persist to storage (this also updates Redux state)
+    // Immediate UI update via synchronous reducer
+    dispatch(updateTaskStatus({ taskId: task.id, status: newStatus }));
+
+    // Persist to storage in background
     dispatch(persistTaskStatus({ taskId: task.id, status: newStatus }));
 
-    // Show feedback
-    Alert.alert('Status Updated', `Task marked as ${newStatus.replace('_', ' ')}`);
-
-    // Reset button state after delay
+    // Reset button press animation after delay
     setTimeout(() => setStatusButtonPressed(null), 500);
   }, [dispatch, task.id]);
 

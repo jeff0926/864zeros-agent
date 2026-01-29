@@ -120,22 +120,11 @@ const tasksSlice = createSlice({
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.tasks = state.tasks.filter(t => t.id !== action.payload);
-      })
-      .addCase(persistToggleSubtask.fulfilled, (state, action) => {
-        const task = state.tasks.find(t => t.id === action.payload.taskId);
-        if (task && task.subtasks) {
-          const subtask = task.subtasks.find(st => st.id === action.payload.subtaskId);
-          if (subtask) {
-            subtask.status = subtask.status === 'completed' ? 'pending' : 'completed';
-          }
-        }
-      })
-      .addCase(persistTaskStatus.fulfilled, (state, action) => {
-        const task = state.tasks.find(t => t.id === action.payload.taskId);
-        if (task) {
-          task.status = action.payload.status;
-        }
       });
+      // Note: persistToggleSubtask.fulfilled intentionally has no state update here.
+      // The synchronous toggleSubtask reducer already updated the UI immediately.
+      // The async thunk only persists to storage — no second toggle needed.
+      // Same for persistTaskStatus — updateTaskStatus sync reducer handles UI.
   },
 });
 
