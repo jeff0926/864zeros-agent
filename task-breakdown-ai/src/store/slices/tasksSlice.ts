@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Task } from '../../types/Task';
 import { localStorageService } from '../../services/localStorageService';
-import { aiService } from '../../services/aiService';
+import { aiService, Granularity } from '../../services/aiService';
 
 interface TasksState {
   tasks: Task[];
@@ -25,9 +25,9 @@ export const fetchTasks = createAsyncThunk(
 
 export const createTaskWithBreakdown = createAsyncThunk(
   'tasks/createTaskWithBreakdown',
-  async ({ taskDescription, userId }: { taskDescription: string; userId: string }) => {
+  async ({ taskDescription, userId, granularity = 'balanced' }: { taskDescription: string; userId: string; granularity?: Granularity }) => {
     // Generate subtasks using AI (Claude)
-    const aiSubtasks = await aiService.breakdownTask(taskDescription);
+    const aiSubtasks = await aiService.breakdownTask(taskDescription, granularity);
 
     // Transform AI subtasks to include required status field
     const subtasks = aiSubtasks.map(st => ({

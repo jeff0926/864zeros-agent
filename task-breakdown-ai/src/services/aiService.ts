@@ -1,11 +1,28 @@
 import { ANTHROPIC_API_KEY } from '@env';
 
+export type Granularity = 'big' | 'balanced' | 'small';
+
 interface BreakdownResult {
   title: string;
   description: string;
   estimated_duration: number;
   order: number;
 }
+
+const GRANULARITY_CONFIG: Record<Granularity, { stepRange: string; style: string }> = {
+  big: {
+    stepRange: '3-4',
+    style: 'large, high-level steps. Each step can represent a significant chunk of work. Focus on the major phases.',
+  },
+  balanced: {
+    stepRange: '6-8',
+    style: 'medium-sized, balanced steps. Each step should be a clear action that takes 10-30 minutes. Good mix of detail and brevity.',
+  },
+  small: {
+    stepRange: '10-15',
+    style: 'tiny, granular steps. Each step should be a single small action that takes 2-10 minutes. Break everything down as small as possible so nothing feels overwhelming.',
+  },
+};
 
 class AIService {
   private apiKey: string;
@@ -15,17 +32,21 @@ class AIService {
     this.apiKey = ANTHROPIC_API_KEY || '';
   }
 
-  async breakdownTask(taskDescription: string, _userPreferences?: any): Promise<BreakdownResult[]> {
+  async breakdownTask(taskDescription: string, granularity: Granularity = 'balanced'): Promise<BreakdownResult[]> {
+    const config = GRANULARITY_CONFIG[granularity];
+
     const prompt = `
-Break down this task into 3-7 actionable steps that can be completed independently:
+Break down this task into ${config.stepRange} actionable steps:
 
 Task: "${taskDescription}"
+
+Granularity: ${config.style}
 
 Requirements:
 - Each step should be specific and actionable
 - Include realistic time estimates in minutes
 - Order steps logically
-- Make steps atomic (can't be broken down further)
+- Make steps completable in one sitting
 
 Return ONLY a JSON array of objects with this structure (no other text):
 [
@@ -36,28 +57,12 @@ Return ONLY a JSON array of objects with this structure (no other text):
     "order": step_number_starting_from_0
   }
 ]
-
-Example output for "Plan a birthday party":
-[
-  {
-    "title": "Set date and time",
-    "description": "Choose a specific date and time that works for the birthday person and key guests",
-    "estimated_duration": 15,
-    "order": 0
-  },
-  {
-    "title": "Create guest list",
-    "description": "List all people to invite, get their contact information",
-    "estimated_duration": 20,
-    "order": 1
-  }
-]
     `.trim();
 
     try {
       if (!this.apiKey) {
         console.warn('No API key configured, using fallback breakdown');
-        return this.getFallbackBreakdown(taskDescription);
+        return this.getFallbackBreakdown(taskDescription, granularity);
       }
 
       const response = await fetch(this.baseUrl, {
@@ -69,7 +74,7 @@ Example output for "Plan a birthday party":
         },
         body: JSON.stringify({
           model: 'claude-3-haiku-20240307',
-          max_tokens: 1024,
+          max_tokens: 2048,
           messages: [
             {
               role: 'user',
@@ -102,37 +107,43 @@ Example output for "Plan a birthday party":
       return subtasks;
     } catch (error) {
       console.error('AI Service Error:', error);
-      // Fallback to basic breakdown
-      return this.getFallbackBreakdown(taskDescription);
+      throw error;
     }
   }
 
-  private getFallbackBreakdown(taskDescription: string): BreakdownResult[] {
+  private getFallbackBreakdown(taskDescription: string, granularity: Granularity): BreakdownResult[] {
+    if (granularity === 'big') {
+      return [
+        { title: 'Plan approach', description: `Think through how to approach: ${taskDescription}`, estimated_duration: 15, order: 0 },
+        { title: 'Execute main work', description: `Complete the core work for: ${taskDescription}`, estimated_duration: 45, order: 1 },
+        { title: 'Review and finalize', description: 'Check work quality and make any necessary adjustments', estimated_duration: 15, order: 2 },
+      ];
+    }
+
+    if (granularity === 'small') {
+      return [
+        { title: 'Define the goal', description: `Clarify exactly what "done" looks like for: ${taskDescription}`, estimated_duration: 5, order: 0 },
+        { title: 'List what you need', description: 'Write down all materials, tools, or info required', estimated_duration: 5, order: 1 },
+        { title: 'Gather first resource', description: 'Get the most important item you need', estimated_duration: 5, order: 2 },
+        { title: 'Gather remaining resources', description: 'Collect everything else on your list', estimated_duration: 10, order: 3 },
+        { title: 'Set up workspace', description: 'Clear your space and arrange what you need', estimated_duration: 5, order: 4 },
+        { title: 'Start first piece', description: 'Begin the very first part of the actual work', estimated_duration: 10, order: 5 },
+        { title: 'Complete first piece', description: 'Finish the first section before moving on', estimated_duration: 10, order: 6 },
+        { title: 'Work on middle section', description: 'Tackle the main body of work', estimated_duration: 15, order: 7 },
+        { title: 'Work on final section', description: 'Complete the last portion of work', estimated_duration: 10, order: 8 },
+        { title: 'Quick review', description: 'Scan through everything for obvious issues', estimated_duration: 5, order: 9 },
+        { title: 'Final polish', description: 'Make small adjustments and finalize', estimated_duration: 5, order: 10 },
+      ];
+    }
+
+    // balanced (default)
     return [
-      {
-        title: 'Plan approach',
-        description: `Think through how to approach: ${taskDescription}`,
-        estimated_duration: 10,
-        order: 0,
-      },
-      {
-        title: 'Gather resources',
-        description: 'Collect all necessary materials, information, or tools',
-        estimated_duration: 15,
-        order: 1,
-      },
-      {
-        title: 'Execute main task',
-        description: `Complete the core work for: ${taskDescription}`,
-        estimated_duration: 30,
-        order: 2,
-      },
-      {
-        title: 'Review and finalize',
-        description: 'Check work quality and make any necessary adjustments',
-        estimated_duration: 10,
-        order: 3,
-      },
+      { title: 'Plan approach', description: `Think through how to approach: ${taskDescription}`, estimated_duration: 10, order: 0 },
+      { title: 'Gather resources', description: 'Collect all necessary materials, information, or tools', estimated_duration: 15, order: 1 },
+      { title: 'Set up environment', description: 'Prepare your workspace and tools', estimated_duration: 10, order: 2 },
+      { title: 'Execute first half', description: `Complete the first part of: ${taskDescription}`, estimated_duration: 20, order: 3 },
+      { title: 'Execute second half', description: 'Complete the remaining core work', estimated_duration: 20, order: 4 },
+      { title: 'Review and finalize', description: 'Check work quality and make any necessary adjustments', estimated_duration: 10, order: 5 },
     ];
   }
 
