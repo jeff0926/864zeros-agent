@@ -41,8 +41,8 @@ const ProfileScreen: React.FC = () => {
 
   const handleAboutPress = () => {
     Alert.alert(
-      'About Task Breakdown AI',
-      'Version 1.0.0\n\nAI-powered task management app that breaks down complex tasks into actionable steps.\n\nMade with ❤️ by 864zeros',
+      'About UnStuck',
+      'Version 1.0.0\n\nOIA \u2014 Organize your Internal Architecture\n\nAI-powered task management that breaks down overwhelming tasks into just the next step.\n\nBuilt for ADHD people by ADHD people.\n\n864zeros LLC',
       [{ text: 'OK' }]
     );
   };
@@ -180,11 +180,14 @@ const ProfileScreen: React.FC = () => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          Task Breakdown AI v1.0.0
+        <Text style={[styles.footerBrand, { color: theme.colors.textSecondary }]}>
+          UnStuck v1.0.0
+        </Text>
+        <Text style={[styles.footerOia, { color: theme.colors.textSecondary }]}>
+          OIA — Organize your Internal Architecture
         </Text>
         <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          Made by 864zeros
+          864zeros LLC
         </Text>
       </View>
     </ScrollView>
@@ -298,9 +301,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     paddingTop: 8,
+    paddingBottom: 32,
+  },
+  footerBrand: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  footerOia: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginBottom: 4,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 11,
     marginVertical: 2,
   },
 });

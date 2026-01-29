@@ -87,9 +87,14 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-          My Tasks
-        </Text>
+        <View>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
+            UnStuck
+          </Text>
+          <Text style={[styles.headerTagline, { color: theme.colors.textSecondary }]}>
+            Just the next step.
+          </Text>
+        </View>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
           onPress={() => navigation.navigate('CreateTask')}
@@ -129,6 +134,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  headerTagline: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   addButton: {
     width: 44,
