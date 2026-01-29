@@ -74,6 +74,13 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     namespace "com.zeros864.taskbreakdownai"
+
+    // Disable lint checks on release builds to avoid task dependency issues
+    // with react-native-vector-icons fonts.gradle
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
     defaultConfig {
         applicationId "com.zeros864.taskbreakdownai"
         minSdkVersion rootProject.ext.minSdkVersion
