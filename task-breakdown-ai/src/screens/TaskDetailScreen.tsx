@@ -5,8 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
-  Animated,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Feather';
@@ -15,6 +13,7 @@ import { AppDispatch, RootState } from '../store/store';
 import { updateTaskStatus, toggleSubtask, persistToggleSubtask, persistTaskStatus } from '../store/slices/tasksSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import { Task, Subtask } from '../types/Task';
+import { OIAColors } from '../theme/OIATheme';
 
 interface TaskDetailScreenProps {
   navigation: any;
@@ -76,6 +75,22 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
     setTimeout(() => setStatusButtonPressed(null), 500);
   }, [dispatch, task.id]);
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return OIAColors.completed;
+      case 'in_progress': return OIAColors.inProgress;
+      default: return OIAColors.pending;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Completed';
+      case 'in_progress': return 'In Progress';
+      default: return 'Pending';
+    }
+  };
+
   const renderSubtask = (subtask: Subtask) => {
     const isAnimating = animatingSubtasks.has(subtask.id);
     const isCompleted = subtask.status === 'completed';
@@ -86,12 +101,11 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
         style={[
           styles.subtaskItem,
           {
-            backgroundColor: isAnimating
-              ? (isCompleted ? theme.colors.success + '20' : theme.colors.surface)
-              : theme.colors.surface,
-            borderLeftColor: isCompleted ? theme.colors.success : theme.colors.border,
+            backgroundColor: theme.colors.surface,
+            borderLeftColor: isCompleted ? theme.colors.sage : theme.colors.taupe,
             borderLeftWidth: isAnimating ? 6 : 4,
             transform: [{ scale: isAnimating ? 0.98 : 1 }],
+            ...theme.shadows.sm,
           },
         ]}
         onPress={() => handleSubtaskToggle(subtask.id)}
@@ -102,12 +116,12 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
             <View style={[
               styles.checkboxContainer,
               {
-                backgroundColor: isCompleted ? theme.colors.success : 'transparent',
-                borderColor: isCompleted ? theme.colors.success : theme.colors.textSecondary,
+                backgroundColor: isCompleted ? theme.colors.sage : 'transparent',
+                borderColor: isCompleted ? theme.colors.sage : theme.colors.taupe,
               }
             ]}>
               {isCompleted && (
-                <Icon name="check" size={14} color="white" />
+                <Icon name="check" size={14} color={OIAColors.warmWhite} />
               )}
             </View>
             <Text style={[
@@ -140,17 +154,9 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
     );
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return theme.colors.success;
-      case 'in_progress': return theme.colors.warning;
-      default: return theme.colors.textSecondary;
-    }
-  };
-
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
           {task.title}
         </Text>
@@ -158,9 +164,11 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
         <View style={styles.statusContainer}>
           <View style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor(task.status) },
+            { backgroundColor: getStatusColor(task.status) + '33' },
           ]}>
-            <Text style={styles.statusText}>{task.status.replace('_', ' ')}</Text>
+            <Text style={[styles.statusText, { color: getStatusColor(task.status) }]}>
+              {getStatusLabel(task.status)}
+            </Text>
           </View>
         </View>
 
@@ -176,23 +184,23 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
               <Text style={[styles.progressTitle, { color: theme.colors.text }]}>
                 Progress
               </Text>
-              <Text style={[styles.progressPercentage, { color: theme.colors.text }]}>
+              <Text style={[styles.progressPercentage, { color: theme.colors.sage }]}>
                 {Math.round(progress)}%
               </Text>
             </View>
 
-            <View style={[styles.progressBar, { backgroundColor: theme.colors.border }]}>
+            <View style={[styles.progressBar, { backgroundColor: theme.colors.taupe + '40' }]}>
               <View style={[
                 styles.progressFill,
                 {
                   width: `${progress}%`,
-                  backgroundColor: theme.colors.success,
+                  backgroundColor: theme.colors.sage,
                 },
               ]} />
             </View>
 
             <Text style={[styles.progressText, { color: theme.colors.textSecondary }]}>
-              {completedSubtasks} of {totalSubtasks} subtasks completed
+              {completedSubtasks} of {totalSubtasks} steps completed
             </Text>
           </View>
         )}
@@ -201,7 +209,7 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
       {totalSubtasks > 0 && (
         <View style={styles.subtasksSection}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Subtasks
+            Steps
           </Text>
 
           {task.subtasks?.map(renderSubtask)}
@@ -230,11 +238,11 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
           <Icon
             name={task.status === 'in_progress' ? 'check-circle' : 'play'}
             size={16}
-            color={statusButtonPressed === 'in_progress' ? 'white' : theme.colors.warning}
+            color={statusButtonPressed === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning}
           />
           <Text style={[
             styles.actionButtonText,
-            { color: statusButtonPressed === 'in_progress' ? 'white' : theme.colors.warning },
+            { color: statusButtonPressed === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning },
           ]}>
             {task.status === 'in_progress' ? 'In Progress' : 'Start Task'}
           </Text>
@@ -244,10 +252,10 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
           style={[
             styles.actionButton,
             {
-              borderColor: theme.colors.success,
+              borderColor: theme.colors.sage,
               backgroundColor: statusButtonPressed === 'completed'
-                ? theme.colors.success
-                : (task.status === 'completed' ? theme.colors.success + '20' : 'transparent'),
+                ? theme.colors.sage
+                : (task.status === 'completed' ? theme.colors.sage + '20' : 'transparent'),
             },
           ]}
           onPress={() => handleStatusChange('completed')}
@@ -257,11 +265,11 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
           <Icon
             name="check-circle"
             size={16}
-            color={statusButtonPressed === 'completed' ? 'white' : theme.colors.success}
+            color={statusButtonPressed === 'completed' ? OIAColors.warmWhite : theme.colors.sage}
           />
           <Text style={[
             styles.actionButtonText,
-            { color: statusButtonPressed === 'completed' ? 'white' : theme.colors.success },
+            { color: statusButtonPressed === 'completed' ? OIAColors.warmWhite : theme.colors.sage },
           ]}>
             {task.status === 'completed' ? 'Completed' : 'Mark Complete'}
           </Text>
@@ -276,13 +284,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: 20,
+    padding: 24,
     marginBottom: 16,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    lineHeight: 32,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -291,10 +300,9 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   statusText: {
-    color: 'white',
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'capitalize',
@@ -319,7 +327,7 @@ const styles = StyleSheet.create({
   },
   progressPercentage: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   progressBar: {
     height: 8,
@@ -334,24 +342,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   subtasksSection: {
-    padding: 20,
+    padding: 24,
     paddingTop: 0,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 16,
   },
   subtaskItem: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 8,
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   subtaskContent: {
     flex: 1,
@@ -362,9 +365,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   checkboxContainer: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 8,
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -377,35 +380,35 @@ const styles = StyleSheet.create({
   },
   subtaskDescription: {
     fontSize: 14,
-    lineHeight: 20,
-    marginLeft: 32,
+    lineHeight: 21,
+    marginLeft: 36,
     marginBottom: 8,
   },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 32,
+    marginLeft: 36,
+    gap: 4,
   },
   durationText: {
     fontSize: 12,
-    marginLeft: 4,
   },
   actionsSection: {
-    padding: 20,
+    padding: 24,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    minHeight: 56,
     borderRadius: 12,
     borderWidth: 2,
     marginBottom: 12,
+    gap: 8,
   },
   actionButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
 });
 

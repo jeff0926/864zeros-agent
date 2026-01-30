@@ -8,11 +8,12 @@ import {
   Switch,
   Alert,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Feather';
 
 import { RootState } from '../store/store';
 import { useTheme } from '../contexts/ThemeContext';
+import { OIAColors } from '../theme/OIATheme';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
@@ -47,9 +48,9 @@ const ProfileScreen: React.FC = () => {
     );
   };
 
-  const StatCard: React.FC<{ title: string; value: number; icon: string }> = ({ title, value, icon }) => (
-    <View style={[styles.statCard, { backgroundColor: theme.colors.surface }]}>
-      <Icon name={icon} size={24} color={theme.colors.primary} />
+  const StatCard: React.FC<{ title: string; value: number; icon: string; color: string }> = ({ title, value, icon, color }) => (
+    <View style={[styles.statCard, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
+      <Icon name={icon} size={24} color={color} />
       <Text style={[styles.statValue, { color: theme.colors.text }]}>{value}</Text>
       <Text style={[styles.statTitle, { color: theme.colors.textSecondary }]}>{title}</Text>
     </View>
@@ -65,9 +66,12 @@ const ProfileScreen: React.FC = () => {
     <TouchableOpacity
       style={[styles.settingItem, { backgroundColor: theme.colors.surface }]}
       onPress={onPress}
+      activeOpacity={0.7}
     >
       <View style={styles.settingLeft}>
-        <Icon name={icon} size={20} color={theme.colors.text} />
+        <View style={[styles.settingIconContainer, { backgroundColor: theme.colors.sage + '15' }]}>
+          <Icon name={icon} size={18} color={theme.colors.sage} />
+        </View>
         <View style={styles.settingText}>
           <Text style={[styles.settingTitle, { color: theme.colors.text }]}>{title}</Text>
           {subtitle && (
@@ -79,7 +83,7 @@ const ProfileScreen: React.FC = () => {
       </View>
 
       {rightComponent || (
-        <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
+        <Icon name="chevron-right" size={20} color={theme.colors.textMuted} />
       )}
     </TouchableOpacity>
   );
@@ -87,9 +91,9 @@ const ProfileScreen: React.FC = () => {
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
         <View style={styles.avatarContainer}>
-          <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+          <View style={[styles.avatar, { backgroundColor: theme.colors.sage }]}>
             <Text style={styles.avatarText}>
               {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
             </Text>
@@ -112,10 +116,10 @@ const ProfileScreen: React.FC = () => {
         </Text>
 
         <View style={styles.statsGrid}>
-          <StatCard title="Completed Tasks" value={completedTasks} icon="check-circle" />
-          <StatCard title="Active Tasks" value={inProgressTasks} icon="play-circle" />
-          <StatCard title="Total Subtasks" value={totalSubtasks} icon="list" />
-          <StatCard title="Completed Steps" value={completedSubtasks} icon="check" />
+          <StatCard title="Completed" value={completedTasks} icon="check-circle" color={OIAColors.completed} />
+          <StatCard title="Active" value={inProgressTasks} icon="play-circle" color={OIAColors.inProgress} />
+          <StatCard title="Total Steps" value={totalSubtasks} icon="list" color={OIAColors.dustyBlue} />
+          <StatCard title="Steps Done" value={completedSubtasks} icon="check" color={OIAColors.sage} />
         </View>
       </View>
 
@@ -125,7 +129,7 @@ const ProfileScreen: React.FC = () => {
           Settings
         </Text>
 
-        <View style={styles.settingsGroup}>
+        <View style={[styles.settingsGroup, { ...theme.shadows.sm }]}>
           <SettingItem
             title="Dark Mode"
             subtitle="Toggle between light and dark themes"
@@ -134,10 +138,13 @@ const ProfileScreen: React.FC = () => {
               <Switch
                 value={isDarkMode}
                 onValueChange={toggleTheme}
-                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                trackColor={{ false: theme.colors.taupe + '60', true: theme.colors.sage + '80' }}
+                thumbColor={isDarkMode ? theme.colors.sage : OIAColors.warmWhite}
               />
             }
           />
+
+          <View style={[styles.settingDivider, { backgroundColor: theme.colors.background }]} />
 
           <SettingItem
             title="Notifications"
@@ -145,6 +152,8 @@ const ProfileScreen: React.FC = () => {
             icon="bell"
             onPress={handleNotificationPress}
           />
+
+          <View style={[styles.settingDivider, { backgroundColor: theme.colors.background }]} />
 
           <SettingItem
             title="Data & Privacy"
@@ -161,13 +170,15 @@ const ProfileScreen: React.FC = () => {
           Support
         </Text>
 
-        <View style={styles.settingsGroup}>
+        <View style={[styles.settingsGroup, { ...theme.shadows.sm }]}>
           <SettingItem
             title="Help & Support"
             subtitle="Get help with using the app"
             icon="help-circle"
             onPress={handleSupportPress}
           />
+
+          <View style={[styles.settingDivider, { backgroundColor: theme.colors.background }]} />
 
           <SettingItem
             title="About"
@@ -180,13 +191,13 @@ const ProfileScreen: React.FC = () => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={[styles.footerBrand, { color: theme.colors.textSecondary }]}>
+        <Text style={[styles.footerBrand, { color: theme.colors.coral }]}>
           UnStuck v1.0.0
         </Text>
         <Text style={[styles.footerOia, { color: theme.colors.textSecondary }]}>
           OIA — Organize your Internal Architecture
         </Text>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
+        <Text style={[styles.footerText, { color: theme.colors.textMuted }]}>
           864zeros LLC
         </Text>
       </View>
@@ -209,30 +220,30 @@ const styles = StyleSheet.create({
   avatar: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    color: 'white',
+    color: '#FDFCFA',
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 4,
   },
   userSubtitle: {
     fontSize: 16,
   },
   statsSection: {
-    padding: 20,
+    padding: 24,
     paddingTop: 0,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 16,
   },
   statsGrid: {
@@ -244,17 +255,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: '45%',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   statValue: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginVertical: 4,
   },
   statTitle: {
@@ -262,15 +268,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   settingsSection: {
-    padding: 20,
+    padding: 24,
   },
   supportSection: {
-    padding: 20,
+    padding: 24,
     paddingTop: 0,
   },
   settingsGroup: {
-    gap: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   settingItem: {
@@ -278,15 +283,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    minHeight: 60,
+    minHeight: 56,
+  },
+  settingDivider: {
+    height: 1,
   },
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  settingIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   settingText: {
-    marginLeft: 16,
+    marginLeft: 12,
     flex: 1,
   },
   settingTitle: {

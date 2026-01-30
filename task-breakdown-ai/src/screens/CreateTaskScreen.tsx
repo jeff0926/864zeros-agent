@@ -16,6 +16,7 @@ import { AppDispatch, RootState } from '../store/store';
 import { createTaskWithBreakdown } from '../store/slices/tasksSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import { Granularity } from '../services/aiService';
+import { OIAColors } from '../theme/OIATheme';
 
 interface CreateTaskScreenProps {
   navigation: any;
@@ -41,7 +42,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 
   const handleGeneratePreview = async () => {
     if (!taskDescription.trim()) {
-      Alert.alert('Error', 'Please enter a task description');
+      Alert.alert('Something went wrong', "Let's try that again - enter a task first");
       return;
     }
 
@@ -60,15 +61,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
   };
 
   const handleCreateTask = async () => {
-    if (!taskDescription.trim()) {
-      Alert.alert('Error', 'Please enter a task description');
-      return;
-    }
-
-    if (!userId) {
-      Alert.alert('Error', 'User not authenticated');
-      return;
-    }
+    if (!taskDescription.trim() || !userId) return;
 
     try {
       await dispatch(createTaskWithBreakdown({
@@ -76,19 +69,16 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
         userId,
         granularity,
       })).unwrap();
-
-      Alert.alert('Success', 'Task created successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      navigation.goBack();
     } catch (err) {
-      Alert.alert('Error', 'Failed to create task. Please try again.');
+      Alert.alert('Something went wrong', "That didn't work - try again?");
     }
   };
 
   const renderPreviewItem = (item: any, index: number) => (
-    <View key={index} style={[styles.previewItem, { backgroundColor: theme.colors.surface }]}>
+    <View key={index} style={[styles.previewItem, { backgroundColor: theme.colors.surface, ...theme.shadows.sm }]}>
       <View style={styles.previewItemHeader}>
-        <Text style={[styles.previewOrder, { color: theme.colors.primary }]}>
+        <Text style={[styles.previewOrder, { color: theme.colors.sage }]}>
           {item.order + 1}.
         </Text>
         <Text style={[styles.previewTitle, { color: theme.colors.text }]}>
@@ -101,7 +91,6 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
           </Text>
         </View>
       </View>
-
       {item.description && (
         <Text style={[styles.previewDescription, { color: theme.colors.textSecondary }]}>
           {item.description}
@@ -116,31 +105,26 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
-          Create New Task
+          What do you need to do?
         </Text>
-
         <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          Describe your task and let AI break it down into actionable steps
+          Describe it and let AI break it into steps
         </Text>
 
         <View style={styles.inputSection}>
-          <Text style={[styles.label, { color: theme.colors.text }]}>
-            Task Description
-          </Text>
-
           <TextInput
             style={[
               styles.textInput,
               {
                 backgroundColor: theme.colors.surface,
                 color: theme.colors.text,
-                borderColor: theme.colors.border,
+                borderColor: theme.colors.taupe,
               },
             ]}
             value={taskDescription}
             onChangeText={setTaskDescription}
             placeholder="e.g., Plan my wedding, Build a mobile app, Organize my closet..."
-            placeholderTextColor={theme.colors.textSecondary}
+            placeholderTextColor={theme.colors.textMuted}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
@@ -151,7 +135,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
             <Text style={[styles.granularityLabel, { color: theme.colors.textSecondary }]}>
               Step size
             </Text>
-            <View style={[styles.granularityTrack, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <View style={[styles.granularityTrack, { backgroundColor: theme.colors.surface, borderColor: theme.colors.taupe }]}>
               {GRANULARITY_OPTIONS.map((option) => {
                 const isSelected = granularity === option.key;
                 return (
@@ -159,20 +143,20 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
                     key={option.key}
                     style={[
                       styles.granularityOption,
-                      isSelected && { backgroundColor: theme.colors.primary },
+                      isSelected && { backgroundColor: theme.colors.sage },
                     ]}
                     onPress={() => setGranularity(option.key)}
                     activeOpacity={0.7}
                   >
                     <Text style={[
                       styles.granularityOptionLabel,
-                      { color: isSelected ? '#FFFFFF' : theme.colors.text },
+                      { color: isSelected ? OIAColors.warmWhite : theme.colors.text },
                     ]}>
                       {option.label}
                     </Text>
                     <Text style={[
                       styles.granularityOptionHint,
-                      { color: isSelected ? 'rgba(255,255,255,0.7)' : theme.colors.textSecondary },
+                      { color: isSelected ? 'rgba(253,252,250,0.7)' : theme.colors.textSecondary },
                     ]}>
                       {option.hint}
                     </Text>
@@ -184,21 +168,23 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 
           <TouchableOpacity
             style={[
-              styles.previewButton,
+              styles.breakdownButton,
               {
-                backgroundColor: theme.colors.primary,
+                backgroundColor: theme.colors.sage,
                 opacity: (!taskDescription.trim() || isGenerating) ? 0.6 : 1,
+                ...theme.shadows.button,
               },
             ]}
             onPress={handleGeneratePreview}
             disabled={!taskDescription.trim() || isGenerating}
+            activeOpacity={0.7}
           >
             {isGenerating ? (
-              <ActivityIndicator color="white" size="small" />
+              <ActivityIndicator color={OIAColors.warmWhite} size="small" />
             ) : (
-              <Icon name="zap" size={16} color="white" />
+              <Icon name="zap" size={16} color={OIAColors.warmWhite} />
             )}
-            <Text style={styles.previewButtonText}>
+            <Text style={styles.breakdownButtonText}>
               {isGenerating ? 'Breaking it down...' : 'Break it down'}
             </Text>
           </TouchableOpacity>
@@ -209,10 +195,10 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
           <View style={[styles.errorContainer, { backgroundColor: theme.colors.error + '15', borderColor: theme.colors.error + '30' }]}>
             <Icon name="alert-circle" size={16} color={theme.colors.error} />
             <Text style={[styles.errorText, { color: theme.colors.error }]}>
-              {error.includes('API Error') ? "Couldn't reach the AI service." : error}
+              {error.includes('API Error') ? "That didn't work - try again?" : error}
             </Text>
             <TouchableOpacity onPress={handleGeneratePreview} style={styles.retryButton}>
-              <Text style={[styles.retryText, { color: theme.colors.primary }]}>Retry</Text>
+              <Text style={[styles.retryText, { color: theme.colors.sage }]}>Retry</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -221,14 +207,13 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
           <View style={styles.previewSection}>
             <View style={styles.previewHeader}>
               <Text style={[styles.previewSectionTitle, { color: theme.colors.text }]}>
-                AI Generated Breakdown
+                Your steps
               </Text>
-
               {totalEstimatedTime > 0 && (
                 <View style={styles.totalTimeContainer}>
-                  <Icon name="clock" size={14} color={theme.colors.primary} />
-                  <Text style={[styles.totalTimeText, { color: theme.colors.primary }]}>
-                    ~{totalEstimatedTime} min total
+                  <Icon name="clock" size={14} color={theme.colors.sage} />
+                  <Text style={[styles.totalTimeText, { color: theme.colors.sage }]}>
+                    ~{totalEstimatedTime} min
                   </Text>
                 </View>
               )}
@@ -238,8 +223,9 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: theme.colors.border }]}
+                style={[styles.secondaryButton, { borderColor: theme.colors.taupe }]}
                 onPress={() => { setPreview([]); setError(null); }}
+                activeOpacity={0.7}
               >
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.textSecondary }]}>
                   Clear
@@ -250,17 +236,19 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
                 style={[
                   styles.createButton,
                   {
-                    backgroundColor: theme.colors.success,
+                    backgroundColor: theme.colors.sage,
                     opacity: loading ? 0.6 : 1,
+                    ...theme.shadows.button,
                   },
                 ]}
                 onPress={handleCreateTask}
                 disabled={loading}
+                activeOpacity={0.7}
               >
                 {loading ? (
-                  <ActivityIndicator color="white" size="small" />
+                  <ActivityIndicator color={OIAColors.warmWhite} size="small" />
                 ) : (
-                  <Icon name="plus" size={16} color="white" />
+                  <Icon name="plus" size={16} color={OIAColors.warmWhite} />
                 )}
                 <Text style={styles.createButtonText}>
                   {loading ? 'Creating...' : 'Create Task'}
@@ -272,7 +260,7 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 
         {preview.length === 0 && !error && taskDescription.trim() && (
           <View style={styles.hintContainer}>
-            <Icon name="info" size={16} color={theme.colors.primary} />
+            <Icon name="info" size={16} color={theme.colors.info} />
             <Text style={[styles.hintText, { color: theme.colors.textSecondary }]}>
               Tap "Break it down" to see how AI will split your task into steps
             </Text>
@@ -284,200 +272,73 @@ const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  inputSection: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
+  container: { flex: 1 },
+  content: { padding: 24 },
+  title: { fontSize: 24, fontWeight: '700', marginBottom: 8 },
+  subtitle: { fontSize: 16, lineHeight: 24, marginBottom: 24 },
+  inputSection: { marginBottom: 24 },
   textInput: {
     borderWidth: 1,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
     minHeight: 80,
     marginBottom: 16,
   },
-  granularitySection: {
-    marginBottom: 16,
-  },
-  granularityLabel: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  granularityTrack: {
-    flexDirection: 'row',
-    borderRadius: 10,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  granularityOption: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  granularityOptionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  granularityOptionHint: {
-    fontSize: 10,
-    marginTop: 1,
-  },
-  previewButton: {
+  granularitySection: { marginBottom: 16 },
+  granularityLabel: { fontSize: 13, marginBottom: 8 },
+  granularityTrack: { flexDirection: 'row', borderRadius: 10, borderWidth: 1, overflow: 'hidden' },
+  granularityOption: { flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, minHeight: 48 },
+  granularityOptionLabel: { fontSize: 13, fontWeight: '600' },
+  granularityOptionHint: { fontSize: 10, marginTop: 1 },
+  breakdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    minHeight: 56,
     borderRadius: 12,
     gap: 8,
   },
-  previewButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: 16,
-    gap: 8,
-  },
-  errorText: {
-    fontSize: 14,
-    flex: 1,
-  },
-  retryButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  retryText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  previewSection: {
-    marginBottom: 24,
-  },
-  previewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  previewSectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  totalTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  totalTimeText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  previewItem: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  previewItemHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  previewOrder: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    width: 24,
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    flex: 1,
-    marginRight: 8,
-  },
-  durationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  durationText: {
-    fontSize: 12,
-  },
-  previewDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginLeft: 24,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
+  breakdownButtonText: { color: '#FDFCFA', fontSize: 16, fontWeight: '600', letterSpacing: 0.5, marginLeft: 8 },
+  errorContainer: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, borderWidth: 1, marginBottom: 16, gap: 8 },
+  errorText: { fontSize: 14, flex: 1 },
+  retryButton: { paddingHorizontal: 12, paddingVertical: 8, minHeight: 48, justifyContent: 'center' },
+  retryText: { fontSize: 14, fontWeight: '600' },
+  previewSection: { marginBottom: 24 },
+  previewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  previewSectionTitle: { fontSize: 20, fontWeight: '600' },
+  totalTimeContainer: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  totalTimeText: { fontSize: 14, fontWeight: '600' },
+  previewItem: { padding: 16, borderRadius: 16, marginBottom: 8 },
+  previewItemHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
+  previewOrder: { fontSize: 16, fontWeight: '700', width: 24 },
+  previewTitle: { fontSize: 16, fontWeight: '600', flex: 1, marginRight: 8 },
+  durationBadge: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  durationText: { fontSize: 12 },
+  previewDescription: { fontSize: 14, lineHeight: 21, marginLeft: 24 },
+  actionButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
   secondaryButton: {
     flex: 1,
-    padding: 16,
+    minHeight: 56,
     borderRadius: 12,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  secondaryButtonText: { fontSize: 16, fontWeight: '600' },
   createButton: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
+    minHeight: 56,
     borderRadius: 12,
     gap: 8,
   },
-  createButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  hintContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 16,
-    borderRadius: 12,
-    gap: 12,
-  },
-  hintText: {
-    fontSize: 14,
-    lineHeight: 20,
-    flex: 1,
-  },
+  createButtonText: { color: '#FDFCFA', fontSize: 16, fontWeight: '600' },
+  hintContainer: { flexDirection: 'row', alignItems: 'flex-start', padding: 16, borderRadius: 12, gap: 12 },
+  hintText: { fontSize: 14, lineHeight: 21, flex: 1 },
 });
 
 export default CreateTaskScreen;
