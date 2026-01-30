@@ -24,12 +24,25 @@ const GRANULARITY_CONFIG: Record<Granularity, { stepRange: string; style: string
   },
 };
 
+/**
+ * Resolve the Anthropic API key.
+ * Priority: EAS Secrets (injected via eas-build-pre-install.sh into .env)
+ *           → local .env file → empty string (triggers fallback).
+ */
+function resolveApiKey(): string {
+  const key = ANTHROPIC_API_KEY;
+  if (key && key !== 'your-anthropic-api-key-here') {
+    return key;
+  }
+  return '';
+}
+
 class AIService {
   private apiKey: string;
   private baseUrl = 'https://api.anthropic.com/v1/messages';
 
   constructor() {
-    this.apiKey = ANTHROPIC_API_KEY || '';
+    this.apiKey = resolveApiKey();
   }
 
   async breakdownTask(taskDescription: string, granularity: Granularity = 'balanced'): Promise<BreakdownResult[]> {
