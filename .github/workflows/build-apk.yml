@@ -1,0 +1,91 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/*'
+    paths:
+      - 'task-breakdown-ai/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+    inputs:
+      anthropic_api_key:
+        description: 'Anthropic API Key (optional - leave empty for fallback mode)'
+        required: false
+        type: string
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: task-breakdown-ai
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clean and install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --legacy-peer-deps
+
+      - name: Patch libraries for AGP 8.0 namespace requirement
+        run: |
+          # Add namespace to react-native-vector-icons
+          VECTOR_ICONS_GRADLE="node_modules/react-native-vector-icons/android/build.gradle"
+          if [ -f "$VECTOR_ICONS_GRADLE" ]; then
+            if ! grep -q "namespace" "$VECTOR_ICONS_GRADLE"; then
+              sed -i "s/android {/android {\n    namespace 'com.oblador.vectoricons'/" "$VECTOR_ICONS_GRADLE"
+              echo "Patched react-native-vector-icons with namespace"
+            fi
+          fi
+
+      - name: Create .env file
+        run: |
+          if [ -n "${{ github.event.inputs.anthropic_api_key }}" ]; then
+            echo "ANTHROPIC_API_KEY=${{ github.event.inputs.anthropic_api_key }}" > .env
+          else
+            echo "ANTHROPIC_API_KEY=" > .env
+          fi
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaskBreakdownAI-release
+          path: task-breakdown-ai/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Get APK info
+        run: |
+          APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+          APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+          echo "### APK Build Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**File:** app-release.apk" >> $GITHUB_STEP_SUMMARY
+          echo "**Size:** $APK_SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download from the **Artifacts** section below." >> $GITHUB_STEP_SUMMARY

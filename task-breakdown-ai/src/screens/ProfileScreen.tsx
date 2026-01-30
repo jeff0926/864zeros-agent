@@ -17,13 +17,13 @@ import { useTheme } from '../contexts/ThemeContext';
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
-  const { theme, toggleTheme, isDarkMode } = useTheme();
+  const { theme, toggleTheme, isDark: isDarkMode } = useTheme();
 
   // Calculate user stats
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
   const totalSubtasks = tasks.reduce((sum, task) => sum + (task.subtasks?.length || 0), 0);
-  const completedSubtasks = tasks.reduce((sum, task) => 
+  const completedSubtasks = tasks.reduce((sum, task) =>
     sum + (task.subtasks?.filter(st => st.status === 'completed').length || 0), 0
   );
 
@@ -41,8 +41,8 @@ const ProfileScreen: React.FC = () => {
 
   const handleAboutPress = () => {
     Alert.alert(
-      'About Task Breakdown AI',
-      'Version 1.0.0\n\nAI-powered task management app that breaks down complex tasks into actionable steps.\n\nMade with ❤️ by 864zeros',
+      'About UnStuck',
+      'Version 1.0.0\n\nOIA \u2014 Organize your Internal Architecture\n\nAI-powered task management that breaks down overwhelming tasks into just the next step.\n\nBuilt for ADHD people by ADHD people.\n\n864zeros LLC',
       [{ text: 'OK' }]
     );
   };
@@ -77,7 +77,7 @@ const ProfileScreen: React.FC = () => {
           )}
         </View>
       </View>
-      
+
       {rightComponent || (
         <Icon name="chevron-right" size={20} color={theme.colors.textSecondary} />
       )}
@@ -95,11 +95,11 @@ const ProfileScreen: React.FC = () => {
             </Text>
           </View>
         </View>
-        
+
         <Text style={[styles.userName, { color: theme.colors.text }]}>
           {user.email || 'Anonymous User'}
         </Text>
-        
+
         <Text style={[styles.userSubtitle, { color: theme.colors.textSecondary }]}>
           Task Management Pro
         </Text>
@@ -110,7 +110,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Your Statistics
         </Text>
-        
+
         <View style={styles.statsGrid}>
           <StatCard title="Completed Tasks" value={completedTasks} icon="check-circle" />
           <StatCard title="Active Tasks" value={inProgressTasks} icon="play-circle" />
@@ -124,7 +124,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Settings
         </Text>
-        
+
         <View style={styles.settingsGroup}>
           <SettingItem
             title="Dark Mode"
@@ -138,14 +138,14 @@ const ProfileScreen: React.FC = () => {
               />
             }
           />
-          
+
           <SettingItem
             title="Notifications"
             subtitle="Manage notification preferences"
             icon="bell"
             onPress={handleNotificationPress}
           />
-          
+
           <SettingItem
             title="Data & Privacy"
             subtitle="Backup and privacy settings"
@@ -160,7 +160,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           Support
         </Text>
-        
+
         <View style={styles.settingsGroup}>
           <SettingItem
             title="Help & Support"
@@ -168,7 +168,7 @@ const ProfileScreen: React.FC = () => {
             icon="help-circle"
             onPress={handleSupportPress}
           />
-          
+
           <SettingItem
             title="About"
             subtitle="App version and information"
@@ -180,11 +180,14 @@ const ProfileScreen: React.FC = () => {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          Task Breakdown AI v1.0.0
+        <Text style={[styles.footerBrand, { color: theme.colors.textSecondary }]}>
+          UnStuck v1.0.0
+        </Text>
+        <Text style={[styles.footerOia, { color: theme.colors.textSecondary }]}>
+          OIA — Organize your Internal Architecture
         </Text>
         <Text style={[styles.footerText, { color: theme.colors.textSecondary }]}>
-          Made by 864zeros
+          864zeros LLC
         </Text>
       </View>
     </ScrollView>
@@ -298,9 +301,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     paddingTop: 8,
+    paddingBottom: 32,
+  },
+  footerBrand: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  footerOia: {
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginBottom: 4,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 11,
     marginVertical: 2,
   },
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Feather';
+import { Task } from '../types/Task';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -9,24 +10,31 @@ import TaskDetailScreen from '../screens/TaskDetailScreen';
 import CreateTaskScreen from '../screens/CreateTaskScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
+// Define navigation param types
+export type HomeStackParamList = {
+  HomeMain: undefined;
+  TaskDetail: { task: Task };
+  CreateTask: undefined;
+};
+
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<HomeStackParamList>();
 
 const HomeStack = () => (
   <Stack.Navigator>
-    <Stack.Screen 
-      name="HomeMain" 
-      component={HomeScreen} 
+    <Stack.Screen
+      name="HomeMain"
+      component={HomeScreen}
       options={{ title: 'Tasks' }}
     />
-    <Stack.Screen 
-      name="TaskDetail" 
-      component={TaskDetailScreen} 
+    <Stack.Screen
+      name="TaskDetail"
+      component={TaskDetailScreen as any}
       options={{ title: 'Task Details' }}
     />
-    <Stack.Screen 
-      name="CreateTask" 
-      component={CreateTaskScreen} 
+    <Stack.Screen
+      name="CreateTask"
+      component={CreateTaskScreen as any}
       options={{ title: 'New Task' }}
     />
   </Stack.Navigator>
@@ -36,7 +44,7 @@ const AppNavigator: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ color, size }) => {
           let iconName: string;
 
           switch (route.name) {
