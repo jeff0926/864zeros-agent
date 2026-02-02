@@ -9,11 +9,6 @@ on:
       - 'task-breakdown-ai/**'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
-    inputs:
-      anthropic_api_key:
-        description: 'Anthropic API Key (optional - leave empty for fallback mode)'
-        required: false
-        type: string
 
 jobs:
   build-android:
@@ -57,11 +52,15 @@ jobs:
           fi
 
       - name: Create .env file
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          if [ -n "${{ github.event.inputs.anthropic_api_key }}" ]; then
-            echo "ANTHROPIC_API_KEY=${{ github.event.inputs.anthropic_api_key }}" > .env
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}" > .env
+            echo "API key injected from GitHub Secrets"
           else
             echo "ANTHROPIC_API_KEY=" > .env
+            echo "WARNING: No API key — app will use fallback breakdown"
           fi
 
       - name: Make gradlew executable
