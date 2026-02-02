@@ -72,12 +72,13 @@ Return ONLY a JSON array of objects with this structure (no other text):
 ]
     `.trim();
 
-    try {
-      if (!this.apiKey) {
-        console.warn('No API key configured, using fallback breakdown');
-        return this.getFallbackBreakdown(taskDescription, granularity);
-      }
+    // No API key → skip the network call entirely
+    if (!this.apiKey) {
+      console.warn('No API key configured, using fallback breakdown');
+      return this.getFallbackBreakdown(taskDescription, granularity);
+    }
 
+    try {
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -100,27 +101,31 @@ Return ONLY a JSON array of objects with this structure (no other text):
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Claude API Error:', response.status, errorText);
-        throw new Error(`API Error: ${response.status}`);
+        // Fall back instead of crashing
+        return this.getFallbackBreakdown(taskDescription, granularity);
       }
 
       const data = await response.json();
       const content = data.content?.[0]?.text;
 
       if (!content) {
-        throw new Error('No response from AI service');
+        console.error('Empty response from AI service');
+        return this.getFallbackBreakdown(taskDescription, granularity);
       }
 
       // Extract JSON from the response (in case there's extra text)
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
-        throw new Error('No valid JSON array in response');
+        console.error('No valid JSON array in AI response');
+        return this.getFallbackBreakdown(taskDescription, granularity);
       }
 
       const subtasks = JSON.parse(jsonMatch[0]);
       return subtasks;
     } catch (error) {
-      console.error('AI Service Error:', error);
-      throw error;
+      // Network error, parse error, anything — always return steps, never crash
+      console.error('AI Service Error (falling back):', error);
+      return this.getFallbackBreakdown(taskDescription, granularity);
     }
   }
 
