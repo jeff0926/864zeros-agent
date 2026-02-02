@@ -108,7 +108,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.headerTitle, { color: theme.colors.coral }]}>UnStuck</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.coral }]}>Thaw</Text>
           <Text style={[styles.headerTagline, { color: theme.colors.textSecondary }]}>
             Just the next step.
           </Text>

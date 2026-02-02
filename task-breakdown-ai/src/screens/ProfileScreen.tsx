@@ -42,8 +42,8 @@ const ProfileScreen: React.FC = () => {
 
   const handleAboutPress = () => {
     Alert.alert(
-      'About UnStuck',
-      'Version 1.0.0\n\nOIA \u2014 Organize your Internal Architecture\n\nAI-powered task management that breaks down overwhelming tasks into just the next step.\n\nBuilt for ADHD people by ADHD people.\n\n864zeros LLC',
+      'About Thaw',
+      'Version 1.0.0\n\nOIA \u2014 Organize your Internal Architecture\n\nAI-powered task management that breaks down overwhelming tasks into just the next step.\n\nBuilt for ADHD people by ADHD people.\n\nthawapp.io\n864zeros LLC',
       [{ text: 'OK' }]
     );
   };
@@ -192,7 +192,7 @@ const ProfileScreen: React.FC = () => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={[styles.footerBrand, { color: theme.colors.coral }]}>
-          UnStuck v1.0.0
+          Thaw v1.0.0
         </Text>
         <Text style={[styles.footerOia, { color: theme.colors.textSecondary }]}>
           OIA — Organize your Internal Architecture

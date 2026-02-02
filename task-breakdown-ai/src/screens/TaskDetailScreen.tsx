@@ -226,23 +226,22 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
             styles.actionButton,
             {
               borderColor: theme.colors.warning,
-              backgroundColor: statusButtonPressed === 'in_progress'
+              backgroundColor: task.status === 'in_progress'
                 ? theme.colors.warning
-                : (task.status === 'in_progress' ? theme.colors.warning + '20' : 'transparent'),
+                : 'transparent',
             },
           ]}
           onPress={() => handleStatusChange('in_progress')}
           activeOpacity={0.7}
-          disabled={task.status === 'in_progress'}
         >
           <Icon
-            name={task.status === 'in_progress' ? 'check-circle' : 'play'}
+            name={task.status === 'in_progress' ? 'pause' : 'play'}
             size={16}
-            color={statusButtonPressed === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning}
+            color={task.status === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning}
           />
           <Text style={[
             styles.actionButtonText,
-            { color: statusButtonPressed === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning },
+            { color: task.status === 'in_progress' ? OIAColors.warmWhite : theme.colors.warning },
           ]}>
             {task.status === 'in_progress' ? 'In Progress' : 'Start Task'}
           </Text>
@@ -253,25 +252,24 @@ const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({ navigation, route }
             styles.actionButton,
             {
               borderColor: theme.colors.sage,
-              backgroundColor: statusButtonPressed === 'completed'
+              backgroundColor: task.status === 'completed'
                 ? theme.colors.sage
-                : (task.status === 'completed' ? theme.colors.sage + '20' : 'transparent'),
+                : 'transparent',
             },
           ]}
-          onPress={() => handleStatusChange('completed')}
+          onPress={() => handleStatusChange(task.status === 'completed' ? 'in_progress' : 'completed')}
           activeOpacity={0.7}
-          disabled={task.status === 'completed'}
         >
           <Icon
-            name="check-circle"
+            name={task.status === 'completed' ? 'rotate-ccw' : 'check-circle'}
             size={16}
-            color={statusButtonPressed === 'completed' ? OIAColors.warmWhite : theme.colors.sage}
+            color={task.status === 'completed' ? OIAColors.warmWhite : theme.colors.sage}
           />
           <Text style={[
             styles.actionButtonText,
-            { color: statusButtonPressed === 'completed' ? OIAColors.warmWhite : theme.colors.sage },
+            { color: task.status === 'completed' ? OIAColors.warmWhite : theme.colors.sage },
           ]}>
-            {task.status === 'completed' ? 'Completed' : 'Mark Complete'}
+            {task.status === 'completed' ? 'Undo — Back to In Progress' : 'Mark Complete'}
           </Text>
         </TouchableOpacity>
       </View>
